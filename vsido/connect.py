@@ -27,10 +27,10 @@ class Connect(object):
             raise
         self._start_receiver()
 
-    def disconnect(self, port, baudrate=DEFAULT_BAUTRATE):
+    def disconnect(self):
         ''' disconnect to V-Sido CONNECT RC via serial port '''
         self._stop_receiver()
-        self.serial = serial.close()
+        self.serial.close()
 
     def _start_receiver(self):
         """ start receiver thread """
@@ -95,24 +95,6 @@ class Connect(object):
             return
         self._send_data(self._make_set_servo_angle_command(angle_data_set, cycle_time))
 
-    def walk(self, forward, turn_cw):
-        ''' V-Sido CONNECT "Walk" command '''
-        if not isinstance(forward, int):
-            raise ConnectParameterError('walk')
-            return
-        if not isinstance(turn_cw, int):
-            raise ConnectParameterError('walk')
-            return
-        if forward > 100:
-            forward = 100
-        if forward < -100:
-            forward = -100
-        if turn_cw > 100:
-            turn_cw = 100
-        if turn_cw < -100:
-            turn_cw = -100
-        self._send_data(self._make_walk_command(forward, turn_cw))
-
     def _make_set_servo_angle_command(self, angle_data_set, cycle_time):
         ''' Genarate "Walk" command data '''
         data = []
@@ -127,6 +109,101 @@ class Connect(object):
             data.append(angle_data[1]) # ANGLE
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
+
+    def set_ik(self, ik_data_set, feedback=False):
+        ''' V-Sido CONNECT "Set_ServoAngle" command '''
+        if not isinstance(ik_data_set, list):
+            raise ConnectParameterError('set_ik')
+            return
+        for ik_data in ik_data_set:
+            if 'kid' in ik_data:
+                if isinstance(ik_data['kid'], int):
+                    if ik_data['kid'] < 0 or ik_data['kid'] > 254:
+                        raise ConnectParameterError('set_ik')
+                        return
+            else:
+                raise ConnectParameterError('set_ik')
+                return
+            if 'kdt' in ik_data:
+                if isinstance(ik_data['kdt'], dict):
+                    if 'x' in ik_data['kdt']:
+                        if isinstance(ik_data['kdt']['x'], int):
+                            if ik_data['kdt']['x'] < -180 or ik_data['kdt']['x'] > 180:
+                                raise ConnectParameterError('set_ik')
+                                return
+                        else:
+                            raise ConnectParameterError('set_ik')
+                            return
+                    else:
+                        raise ConnectParameterError('set_ik')
+                    if 'y' in ik_data['kdt']:
+                        if isinstance(ik_data['kdt']['y'], int):
+                            if ik_data['kdt']['y'] < -180 or ik_data['kdt']['y'] > 180:
+                                raise ConnectParameterError('set_ik')
+                                return
+                        else:
+                            raise ConnectParameterError('set_ik')
+                            return
+                    else:
+                        raise ConnectParameterError('set_ik')
+                        return
+                    if 'z' in ik_data['kdt']:
+                        if isinstance(ik_data['kdt']['z'], int):
+                            if ik_data['kdt']['z'] < -180 or ik_data['kdt']['z'] > 180:
+                                raise ConnectParameterError('set_ik')
+                                return
+                        else:
+                            raise ConnectParameterError('set_ik')
+                            return
+                    else:
+                        raise ConnectParameterError('set_ik')
+                        return
+                else:
+                    raise ConnectParameterError('set_ik')
+                    return
+            else:
+                raise ConnectParameterError('set_servo_angle')
+                return
+        if not isinstance(feedback, bool):
+            raise ConnectParameterError('set_ik')
+            return
+        self._send_data(self._make_set_ik_command(ik_data_set, feedback))
+
+    def _make_set_ik_command(self, ik_data_set, feedback):
+        ''' Genarate "set_ik" command data '''
+        data = []
+        data.append(Connect.COMMAND_ST) # ST
+        data.append(Connect.COMMAND_OP_IK) # OP
+        data.append(0x00) # LN仮置き
+        if not feedback:
+            data.append(0x01) # IKF
+        else:
+            data.append(0x09) # IKF
+        for ik_data in ik_data_set:
+            data.append(ik_data['kid']) # KID
+            data.append(ik_data['kdt']['x'] + 100) # KDT_X
+            data.append(ik_data['kdt']['y'] + 100) # KDT_Y
+            data.append(ik_data['kdt']['z'] + 100) # KDT_Z
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
+    def walk(self, forward, turn_cw):
+        ''' V-Sido CONNECT "Walk" command '''
+        if isinstance(forward, int):
+            if forward < -100 or forward > 100:
+                raise ConnectParameterError('walk')
+                return
+        else:
+            raise ConnectParameterError('walk')
+            return
+        if isinstance(turn_cw, int):
+            if turn_cw < -100 or turn_cw > 100:
+                raise ConnectParameterError('walk')
+                return
+        else:
+            raise ConnectParameterError('walk')
+            return
+        self._send_data(self._make_walk_command(forward, turn_cw))
 
     def _make_walk_command(self, forward, turn_cw):
         ''' Genarate "Walk" command data '''
