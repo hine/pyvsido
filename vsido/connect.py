@@ -1,3 +1,4 @@
+import types
 import serial
 import threading
 
@@ -17,6 +18,23 @@ class Connect(object):
 
     def __init__(self):
         self.receive_buffer = []
+        self.response_waiting_buffer = []
+        self.post_receive_process = self._post_receive
+        self.post_send_process = self._post_send
+
+    def set_post_receive_process(self, post_receive_process):
+        ''' Set post receive process '''
+        if isinstance(post_receive_process, types.FunctionType):
+            self.post_receive_process = post_receive_process
+        else:
+            raise ConnectParameterError('set_post_receive_process')
+
+    def set_post_send_process(self, post_send_process):
+        ''' Set post send process '''
+        if isinstance(post_send_process, types.FunctionType):
+            self.post_send_process = post_send_process
+        else:
+            raise ConnectParameterError('set_post_send_process')
 
     def connect(self, port, baudrate=DEFAULT_BAUTRATE):
         ''' connect to V-Sido CONNECT RC via serial port '''
@@ -55,14 +73,19 @@ class Connect(object):
                     self.receive_buffer.append(int.from_bytes(data, byteorder='big'))
                     if len(self.receive_buffer) > 3:
                         if len(self.receive_buffer) == self.receive_buffer[2]:
-                            receive_buffer_str = []
-                            for data in self.receive_buffer:
-                                receive_buffer_str.append('%02x' % data)
-                            print('< ' + ' '.join(receive_buffer_str))
+                            if not self.receive_buffer[1] == 0x21:
+                                self.response_waiting_buffer = self.receive_buffer
+                            self.post_receive_process(self.receive_buffer)
                             self.receive_buffer = []
         except serial.SerialException:
             self.alive = False
             raise
+
+    def _post_receive(self, received_data):
+        received_data_str = []
+        for data in received_data:
+            received_data_str.append('%02x' % data)
+        print('< ' + ' '.join(received_data_str))
 
     def set_servo_angle(self, angle_data_set, cycle_time):
         ''' V-Sido CONNECT "Set_ServoAngle" command '''
@@ -167,7 +190,10 @@ class Connect(object):
         if not isinstance(feedback, bool):
             raise ConnectParameterError('set_ik')
             return
-        self._send_data(self._make_set_ik_command(ik_data_set, feedback))
+        if not feedback:
+            self._send_data(self._make_set_ik_command(ik_data_set, feedback))
+        else:
+            return self._parse_ik_response(self._send_data_wait_response(self._make_set_ik_command(ik_data_set, feedback)))
 
     def _make_set_ik_command(self, ik_data_set, feedback):
         ''' Genarate "set_ik" command data '''
@@ -186,6 +212,27 @@ class Connect(object):
             data.append(ik_data['kdt']['z'] + 100) # KDT_Z
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
+
+    def _parse_ik_response(self, response_data):
+        ''' Parse IK response data '''
+        if len(response_data) < 9:
+            raise ConnectParameterError('parse_ik_response')
+            return
+        if not response_data[1] == 0x6b:
+            raise ConnectParameterError('parse_ik_response')
+            return
+        ik_num = (len(response_data) - 5) // 4
+        print(ik_num)
+        ik_data_set = []
+        for i in range(0, ik_num):
+            ik_data = {}
+            ik_data['kid'] = response_data[i * 4 + 4]
+            ik_data['kdt'] = {}
+            ik_data['kdt']['x'] = response_data[i * 4 + 5] - 100
+            ik_data['kdt']['y'] = response_data[i * 4 + 6] - 100
+            ik_data['kdt']['z'] = response_data[i * 4 + 7] - 100
+            ik_data_set.append(ik_data)
+        return ik_data_set
 
     def walk(self, forward, turn_cw):
         ''' V-Sido CONNECT "Walk" command '''
@@ -222,13 +269,25 @@ class Connect(object):
     def _send_data(self, command_data):
         ''' Send data to V-Sido CONNECT via serial port '''
         data_bytes = b''
-        data_str = []
         for data in command_data:
             data_bytes += data.to_bytes(1, byteorder='little')
-            data_str.append('%02x' % data)
         self.serial.write(data_bytes)
+        self.post_send_process(command_data)
 
-        print('> ' + ' '.join(data_str))
+    def _send_data_wait_response(self, command_data):
+        ''' Send data to V-Sido CONNECT via serial port and wait response'''
+        self.response_waiting_buffer = []
+        self._send_data(command_data)
+        while not self.response_waiting_buffer:
+            pass
+        return self.response_waiting_buffer
+
+
+    def _post_send(self, sent_data):
+        sent_data_str = []
+        for data in sent_data:
+            sent_data_str.append('%02x' % data)
+        print('> ' + ' '.join(sent_data_str))
 
     def _make_2byte_data(self, value):
         ''' 2Byte data (see "V-Sido CONNECT RC Command Reference") '''
