@@ -36,6 +36,14 @@ class Connect(object):
         else:
             raise ConnectParameterError('set_post_send_process')
 
+    def _post_receive(self, received_data):
+        ''' post receive prosess dummy '''
+        pass
+
+    def _post_send(self, sent_data):
+        ''' post send prosess dummy '''
+        pass
+
     def connect(self, port, baudrate=DEFAULT_BAUTRATE):
         ''' connect to V-Sido CONNECT RC via serial port '''
         try:
@@ -80,12 +88,6 @@ class Connect(object):
         except serial.SerialException:
             self.alive = False
             raise
-
-    def _post_receive(self, received_data):
-        received_data_str = []
-        for data in received_data:
-            received_data_str.append('%02x' % data)
-        print('< ' + ' '.join(received_data_str))
 
     def set_servo_angle(self, angle_data_set, cycle_time):
         ''' V-Sido CONNECT "Set_ServoAngle" command '''
@@ -141,7 +143,7 @@ class Connect(object):
         for ik_data in ik_data_set:
             if 'kid' in ik_data:
                 if isinstance(ik_data['kid'], int):
-                    if ik_data['kid'] < 0 or ik_data['kid'] > 254:
+                    if ik_data['kid'] < 0 or ik_data['kid'] > 15:
                         raise ConnectParameterError('set_ik')
                         return
             else:
@@ -222,7 +224,6 @@ class Connect(object):
             raise ConnectParameterError('parse_ik_response')
             return
         ik_num = (len(response_data) - 5) // 4
-        print(ik_num)
         ik_data_set = []
         for i in range(0, ik_num):
             ik_data = {}
@@ -282,13 +283,6 @@ class Connect(object):
             pass
         return self.response_waiting_buffer
 
-
-    def _post_send(self, sent_data):
-        sent_data_str = []
-        for data in sent_data:
-            sent_data_str.append('%02x' % data)
-        print('> ' + ' '.join(sent_data_str))
-
     def _make_2byte_data(self, value):
         ''' 2Byte data (see "V-Sido CONNECT RC Command Reference") '''
         value_bytes = value.to_bytes(2, byteorder='big', signed=True)
@@ -319,6 +313,20 @@ if __name__ == '__main__':
 
     DEFAULT_PORT = '/dev/tty.usbserial'
 
+    # 受信データを表示する関数のサンプル
+    def post_receive(received_data):
+        received_data_str = []
+        for data in received_data:
+            received_data_str.append('%02x' % data)
+        print('< ' + ' '.join(received_data_str))
+
+    # 送信データを表示する関数のサンプル
+    def post_send(sent_data):
+        sent_data_str = []
+        for data in sent_data:
+            sent_data_str.append('%02x' % data)
+        print('> ' + ' '.join(sent_data_str))
+
     print("=== Python V-Sido TEST ===")
 
     # 引数からシリアルポートを決定する
@@ -338,6 +346,10 @@ if __name__ == '__main__':
         print("fail.")
         sys.exit(1)
     print("done.")
+
+    # 送受信後の処理を自作関数に置き換える方法
+    vsidoconnect.set_post_send_process(post_send)
+    vsidoconnect.set_post_receive_process(post_receive)
     print("exit: Ctrl-C")
     print("")
 
