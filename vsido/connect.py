@@ -10,9 +10,9 @@ class Connect(object):
     # V-Sidoで利用するコマンドやオペランドのクラス変数定義
     COMMAND_ST = 0xff;
     COMMAND_OP_ANGLE = 0x6f; # 'o'
+    COMMAND_OP_SET_VID_VALUE = 0x73; # 's'
     COMMAND_OP_IK = 0x6b; # 'k'
     COMMAND_OP_WALK = 0x74; # 't'
-    COMMAND_OP_SETVID = 0x73; # 's'
     COMMAND_OP_GPIO = 0x69; # 'i'
     COMMAND_OP_PWM = 0x70; # 'p'
 
@@ -134,6 +134,45 @@ class Connect(object):
             data.append(angle_data[1]) # ANGLE
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
+
+    def set_vid_value(self, vid_data_set):
+        ''' V-Sido CONNECT Set_VID_Value '''
+        if not isinstance(vid_data_set, list):
+            raise ConnectParameterError('set_vid_value')
+            return
+        for vid_data in vid_data_set:
+            if 'vid' in vid_data:
+                if isinstance(vid_data['vid'], int):
+                    # 本来はこんなに幅が広くないが将来的に拡張する可能性と、バージョン確認などに対応
+                    if vid_data['vid'] < 0 or vid_data['vid'] > 254:
+                        raise ConnectParameterError('set_vid_value')
+                        return
+            else:
+                raise ConnectParameterError('set_vid_value')
+                return
+            if 'vdt' in vid_data:
+                if isinstance(vid_data['vdt'], int) or isinstance(vid_data['vdt'], float):
+                    # 2Byteデータの取り扱いについては仕様書を要確認
+                    if vid_data['vdt'] < 0 or vid_data['vdt'] > 254:
+                        raise ConnectParameterError('set_vid_value')
+                        return
+            else:
+                raise ConnectParameterError('set_vid_value')
+                return
+        self._send_data(self._make_set_vid_value(vid_data_set))
+
+    def _make_set_vid_value(self, vid_data_set):
+        ''' Generate "Set_VID_Value" command data '''
+        data = []
+        data.append(Connect.COMMAND_ST) # ST
+        data.append(Connect.COMMAND_OP_SET_VID_VALUE) # OP
+        data.append(0x00) # LN仮置き
+        for vid_data in vid_data_set:
+            data.append(vid_data['vid']) # VID
+            data.append(vid_data['vdt']) # VDT(※2Byteになるデータがある模様だが、それぞれでIDふられているので、LISTに入れるようにすること)
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
 
     def set_ik(self, ik_data_set, feedback=False):
         ''' V-Sido CONNECT "Set_ServoAngle" command '''
