@@ -1,6 +1,6 @@
 import types
-import serial
 import threading
+import serial
 
 DEFAULT_BAUTRATE = 115200
 
