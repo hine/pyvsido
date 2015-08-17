@@ -18,22 +18,23 @@ class Connect(object):
     COMMAND_OP_PWM = 0x70; # 'p'
 
     def __init__(self):
-        self.receive_buffer = []
-        self.response_waiting_buffer = []
-        self.post_receive_process = self._post_receive
-        self.post_send_process = self._post_send
+        self._receive_buffer = []
+        self._response_waiting_buffer = []
+        self._post_receive_process = self._post_receive
+        self._post_send_process = self._post_send
+        self._firmware_version = 0
 
     def set_post_receive_process(self, post_receive_process):
         ''' Set post receive process '''
         if isinstance(post_receive_process, types.FunctionType):
-            self.post_receive_process = post_receive_process
+            self._post_receive_process = post_receive_process
         else:
             raise ConnectParameterError('set_post_receive_process')
 
     def set_post_send_process(self, post_send_process):
         ''' Set post send process '''
         if isinstance(post_send_process, types.FunctionType):
-            self.post_send_process = post_send_process
+            self._post_send_process = post_send_process
         else:
             raise ConnectParameterError('set_post_send_process')
 
@@ -53,6 +54,8 @@ class Connect(object):
             sys.stderr.write("could not open port %r: %s\n" % (port, e))
             raise
         self._start_receiver()
+        version_data = self.get_vid_version()
+        self._firmware_version = version_data[0]['vdt']
 
     def disconnect(self):
         ''' disconnect to V-Sido CONNECT RC via serial port '''
@@ -61,31 +64,32 @@ class Connect(object):
 
     def _start_receiver(self):
         """ start receiver thread """
-        self.receiver_alive = True
-        self.receiver_thread = threading.Thread(target=self._receiver)
-        self.receiver_thread.setDaemon(True)
-        self.receiver_thread.start()
+        self._receiver_alive = True
+        self._receiver_thread = threading.Thread(target=self._receiver)
+        self._receiver_thread.setDaemon(True)
+        self._receiver_thread.start()
 
     def _stop_receiver(self):
         """ start receiver thread """
-        self.receiver_alive = False
-        self.receiver_thread.join()
+        self._receiver_alive = False
+        self._receiver_thread.join()
 
     def _receiver(self):
         """ Receiving data """
         try:
-            while self.receiver_alive:
+            while self._receiver_alive:
                 data = self.serial.read(1)
                 if len(data) > 0:
                     if data == 0xff:
-                        self.receive_buffer = []
-                    self.receive_buffer.append(int.from_bytes(data, byteorder='big'))
-                    if len(self.receive_buffer) > 3:
-                        if len(self.receive_buffer) == self.receive_buffer[2]:
-                            if not self.receive_buffer[1] == 0x21:
-                                self.response_waiting_buffer = self.receive_buffer
-                            self.post_receive_process(self.receive_buffer)
-                            self.receive_buffer = []
+                        self._receive_buffer = []
+                    self._receive_buffer.append(int.from_bytes(data, byteorder='big'))
+                    if len(self._receive_buffer) > 3:
+                        if len(self._receive_buffer) == self._receive_buffer[2]:
+                            if not self._receive_buffer[1] == 0x21:
+                                # ackじゃなかった場合はレスポンス待ちのデータということで格納する
+                                self._response_waiting_buffer = self._receive_buffer
+                            self._post_receive_process(self._receive_buffer)
+                            self._receive_buffer = []
         except serial.SerialException:
             self.alive = False
             raise
@@ -154,8 +158,10 @@ class Connect(object):
         if pwm_cycle < 0 or pwm_cycle > 16384:
             raise ConnectParameterError('set_vid_pwm_cycle')
             return
-        vdt = self._make_2byte_data
-        self.set_vid_value([{"vid":6, "vdt":dtd[0]}, {"vid":7, "vdt":dtd[1]}])
+        pwm_cycle_data = round(pwm_cycle / 4)
+        # vdt = self._make_2byte_data # [Todo]:本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
+        vdt = [pwm_cycle_data // 256, pwm_cycle_data % 256]
+        self.set_vid_value([{"vid":6, "vdt":vdt[0]}, {"vid":7, "vdt":vdt[1]}])
 
     def set_vid_value(self, vid_data_set):
         ''' V-Sido CONNECT Set_VID_Value '''
@@ -195,6 +201,10 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
+    def get_vid_version(self):
+        ''' get version value from vid '''
+        return self.get_vid_value([{"vid":254}])
+
     def get_vid_value(self, vid_data_set):
         ''' V-Sido CONNECT Get_VID_Value '''
         if not isinstance(vid_data_set, list):
@@ -225,14 +235,13 @@ class Connect(object):
 
     def _parse_vid_response(self, vid_data_set, response_data):
         ''' Parse VID response data '''
-        print(response_data)
         if len(response_data) < 5:
             raise ConnectParameterError('parse_vid_response')
             return
         if not response_data[1] == Connect.COMMAND_OP_GET_VID_VALUE:
             raise ConnectParameterError('parse_vid_response')
             return
-        vid_num = len(response_data) - 5 #本来は4引くだけだが、ver.2.2現在バグで0x00が多くついてくる
+        vid_num = len(response_data) - 5 # [Todo]:本来は4引くだけだが、ver.2.2現在バグで0x00が多くついてくる
         if not len(vid_data_set) == vid_num:
             raise ConnectParameterError('parse_vid_response')
             return
@@ -378,15 +387,15 @@ class Connect(object):
         for data in command_data:
             data_bytes += data.to_bytes(1, byteorder='little')
         self.serial.write(data_bytes)
-        self.post_send_process(command_data)
+        self._post_send_process(command_data)
 
     def _send_data_wait_response(self, command_data):
         ''' Send data to V-Sido CONNECT via serial port and wait response'''
-        self.response_waiting_buffer = []
+        self._response_waiting_buffer = []
         self._send_data(command_data)
-        while not self.response_waiting_buffer:
+        while not self._response_waiting_buffer:
             pass
-        return self.response_waiting_buffer
+        return self._response_waiting_buffer
 
     def _make_2byte_data(self, value):
         ''' 2Byte data (see "V-Sido CONNECT RC Command Reference") '''
