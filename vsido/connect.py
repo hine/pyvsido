@@ -11,6 +11,7 @@ class Connect(object):
     COMMAND_ST = 0xff;
     COMMAND_OP_ANGLE = 0x6f; # 'o'
     COMMAND_OP_SET_VID_VALUE = 0x73; # 's'
+    COMMAND_OP_GET_VID_VALUE = 0x67; # 'g'
     COMMAND_OP_IK = 0x6b; # 'k'
     COMMAND_OP_WALK = 0x74; # 't'
     COMMAND_OP_GPIO = 0x69; # 'i'
@@ -135,6 +136,27 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
+    def set_vid_use_pwm(self, use=True):
+        ''' V-Sido CONNECT VID_USE_PWM value setting(高級化) '''
+        if not isinstance(use, bool):
+            raise ConnectParameterError('set_vid_pwm_cycle')
+            return
+        if use:
+            self.set_vid_value([{"vid":5, "vdt":1}])
+        else:
+            self.set_vid_value([{"vid":5, "vdt":0}])
+
+    def set_vid_pwm_cycle(self, pwm_cycle):
+        ''' V-Sido CONNECT VID_PWM_CYCLE value setting(高級化) '''
+        if not isinstance(pwm_cycle, int):
+            raise ConnectParameterError('set_vid_pwm_cycle')
+            return
+        if pwm_cycle < 0 or pwm_cycle > 16384:
+            raise ConnectParameterError('set_vid_pwm_cycle')
+            return
+        vdt = self._make_2byte_data
+        self.set_vid_value([{"vid":6, "vdt":dtd[0]}, {"vid":7, "vdt":dtd[1]}])
+
     def set_vid_value(self, vid_data_set):
         ''' V-Sido CONNECT Set_VID_Value '''
         if not isinstance(vid_data_set, list):
@@ -159,9 +181,9 @@ class Connect(object):
             else:
                 raise ConnectParameterError('set_vid_value')
                 return
-        self._send_data(self._make_set_vid_value(vid_data_set))
+        self._send_data(self._make_set_vid_value_command(vid_data_set))
 
-    def _make_set_vid_value(self, vid_data_set):
+    def _make_set_vid_value_command(self, vid_data_set):
         ''' Generate "Set_VID_Value" command data '''
         data = []
         data.append(Connect.COMMAND_ST) # ST
@@ -173,6 +195,50 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
+    def get_vid_value(self, vid_data_set):
+        ''' V-Sido CONNECT Get_VID_Value '''
+        if not isinstance(vid_data_set, list):
+            raise ConnectParameterError('get_vid_value')
+            return
+        for vid_data in vid_data_set:
+            if 'vid' in vid_data:
+                if isinstance(vid_data['vid'], int):
+                    # 本来はこんなに幅が広くないが将来的に拡張する可能性と、バージョン確認などに対応
+                    if vid_data['vid'] < 0 or vid_data['vid'] > 254:
+                        raise ConnectParameterError('get_vid_value')
+                        return
+            else:
+                raise ConnectParameterError('get_vid_value')
+                return
+        return self._parse_vid_response(vid_data_set, self._send_data_wait_response(self._make_get_vid_value_command(vid_data_set)))
+
+    def _make_get_vid_value_command(self, vid_data_set):
+        ''' Generate "Get_VID_Value" command data '''
+        data = []
+        data.append(Connect.COMMAND_ST) # ST
+        data.append(Connect.COMMAND_OP_GET_VID_VALUE) # OP
+        data.append(0x00) # LN仮置き
+        for vid_data in vid_data_set:
+            data.append(vid_data['vid']) # VID
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
+    def _parse_vid_response(self, vid_data_set, response_data):
+        ''' Parse VID response data '''
+        print(response_data)
+        if len(response_data) < 5:
+            raise ConnectParameterError('parse_vid_response')
+            return
+        if not response_data[1] == Connect.COMMAND_OP_GET_VID_VALUE:
+            raise ConnectParameterError('parse_vid_response')
+            return
+        vid_num = len(response_data) - 5 #本来は4引くだけだが、ver.2.2現在バグで0x00が多くついてくる
+        if not len(vid_data_set) == vid_num:
+            raise ConnectParameterError('parse_vid_response')
+            return
+        for i in range(0, vid_num):
+            vid_data_set[i]['vdt'] = response_data[i * 2 + 3]
+        return vid_data_set
 
     def set_ik(self, ik_data_set, feedback=False):
         ''' V-Sido CONNECT "Set_ServoAngle" command '''
@@ -259,7 +325,7 @@ class Connect(object):
         if len(response_data) < 9:
             raise ConnectParameterError('parse_ik_response')
             return
-        if not response_data[1] == 0x6b:
+        if not response_data[1] == Connect.COMMAND_OP_IK:
             raise ConnectParameterError('parse_ik_response')
             return
         ik_num = (len(response_data) - 5) // 4
