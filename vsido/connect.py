@@ -1,5 +1,7 @@
-import types
+import sys
+import time
 import threading
+import types
 import serial
 
 DEFAULT_BAUTRATE = 115200
@@ -12,10 +14,10 @@ class Connect(object):
     COMMAND_OP_ANGLE = 0x6f; # 'o'
     COMMAND_OP_SET_VID_VALUE = 0x73; # 's'
     COMMAND_OP_GET_VID_VALUE = 0x67; # 'g'
+    COMMAND_OP_PWM = 0x70; # 'p'
     COMMAND_OP_IK = 0x6b; # 'k'
     COMMAND_OP_WALK = 0x74; # 't'
     COMMAND_OP_GPIO = 0x69; # 'i'
-    COMMAND_OP_PWM = 0x70; # 'p'
 
     def __init__(self):
         self._receive_buffer = []
@@ -54,8 +56,8 @@ class Connect(object):
             sys.stderr.write("could not open port %r: %s\n" % (port, e))
             raise
         self._start_receiver()
-        version_data = self.get_vid_version()
-        self._firmware_version = version_data[0]['vdt']
+        #time.sleep(0.1)
+        #self._firmware_version = self.get_vid_version()[0]['vdt']
 
     def disconnect(self):
         ''' disconnect to V-Sido CONNECT RC via serial port '''
@@ -235,18 +237,21 @@ class Connect(object):
 
     def _parse_vid_response(self, vid_data_set, response_data):
         ''' Parse VID response data '''
+        print(response_data)
         if len(response_data) < 5:
             raise ConnectParameterError('parse_vid_response')
             return
         if not response_data[1] == Connect.COMMAND_OP_GET_VID_VALUE:
             raise ConnectParameterError('parse_vid_response')
             return
-        vid_num = len(response_data) - 5 # [Todo]:本来は4引くだけだが、ver.2.2現在バグで0x00が多くついてくる
+        vid_num = len(response_data) - 4 # [Todo]:本来は4引くだけだが、ver.2.2現在バグで0x00が多くついてくる
         if not len(vid_data_set) == vid_num:
-            raise ConnectParameterError('parse_vid_response')
-            return
+            if len(vid_data_set) == vid_num - 1: # [Todo]:仮に00がついていてもOKなロジックとする
+                if not response_data[3 + len(vid_data_set)] == 0:
+                    raise ConnectParameterError('parse_vid_response')
+                    return
         for i in range(0, vid_num):
-            vid_data_set[i]['vdt'] = response_data[i * 2 + 3]
+            vid_data_set[i]['vdt'] = response_data[3 + i]
         return vid_data_set
 
     def set_ik(self, ik_data_set, feedback=False):
