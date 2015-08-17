@@ -33,14 +33,14 @@ class Connect(object):
         if isinstance(post_receive_process, types.FunctionType):
             self._post_receive_process = post_receive_process
         else:
-            raise ConnectParameterError('set_post_receive_process')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
 
     def set_post_send_process(self, post_send_process):
         ''' Set post send process '''
         if isinstance(post_send_process, types.FunctionType):
             self._post_send_process = post_send_process
         else:
-            raise ConnectParameterError('set_post_send_process')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
 
     def _post_receive(self, received_data):
         ''' post receive prosess dummy '''
@@ -103,31 +103,31 @@ class Connect(object):
     def set_servo_angle(self, angle_data_set, cycle_time):
         ''' V-Sido CONNECT "Set_ServoAngle" command '''
         if not isinstance(angle_data_set, list):
-            raise ConnectParameterError('set_servo_angle')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         for angle_data in angle_data_set:
             if 'sid' in angle_data:
                 if isinstance(angle_data['sid'], int):
                     if angle_data['sid'] < 0 or angle_data['sid'] > 254:
-                        raise ConnectParameterError('set_servo_angle')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
             else:
-                raise ConnectParameterError('set_servo_angle')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
             if 'angle' in angle_data:
                 if isinstance(angle_data['angle'], int) or isinstance(angle_data['angle'], float):
                     if angle_data['angle'] < -180.0 or angle_data['angle'] > 180.0:
-                        raise ConnectParameterError('set_servo_angle')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
             else:
-                raise ConnectParameterError('set_servo_angle')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
         if isinstance(cycle_time, int):
             if cycle_time < 0 or cycle_time > 1000:
-                raise ConnectParameterError('set_servo_angle')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
         else:
-            raise ConnectParameterError('set_servo_angle')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         self._send_data(self._make_set_servo_angle_command(angle_data_set, cycle_time))
 
@@ -149,7 +149,7 @@ class Connect(object):
     def set_vid_use_pwm(self, use=True):
         ''' V-Sido CONNECT VID_USE_PWM value setting(高級化) '''
         if not isinstance(use, bool):
-            raise ConnectParameterError('set_vid_pwm_cycle')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if use:
             self.set_vid_value([{"vid":5, "vdt":1}])
@@ -162,10 +162,10 @@ class Connect(object):
     def set_vid_pwm_cycle(self, pwm_cycle):
         ''' V-Sido CONNECT VID_PWM_CYCLE value setting(高級化) '''
         if not isinstance(pwm_cycle, int):
-            raise ConnectParameterError('set_vid_pwm_cycle')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if pwm_cycle < 4 or pwm_cycle > 16384:
-            raise ConnectParameterError('set_vid_pwm_cycle')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         pwm_cycle_data = round(pwm_cycle / 4)
         # vdt = self._make_2byte_data # [Todo]:本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
@@ -176,26 +176,26 @@ class Connect(object):
     def set_vid_value(self, vid_data_set):
         ''' V-Sido CONNECT Set_VID_Value '''
         if not isinstance(vid_data_set, list):
-            raise ConnectParameterError('set_vid_value')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         for vid_data in vid_data_set:
             if 'vid' in vid_data:
                 if isinstance(vid_data['vid'], int):
                     # 本来はこんなに幅が広くないが将来的に拡張する可能性と、バージョン確認などに対応
                     if vid_data['vid'] < 0 or vid_data['vid'] > 254:
-                        raise ConnectParameterError('set_vid_value')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
             else:
-                raise ConnectParameterError('set_vid_value')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
             if 'vdt' in vid_data:
                 if isinstance(vid_data['vdt'], int) or isinstance(vid_data['vdt'], float):
                     # 2Byteデータの取り扱いについては仕様書を要確認
                     if vid_data['vdt'] < 0 or vid_data['vdt'] > 254:
-                        raise ConnectParameterError('set_vid_value')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
             else:
-                raise ConnectParameterError('set_vid_value')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
         self._send_data(self._make_set_vid_value_command(vid_data_set))
 
@@ -223,17 +223,17 @@ class Connect(object):
     def get_vid_value(self, vid_data_set):
         ''' V-Sido CONNECT Get_VID_Value '''
         if not isinstance(vid_data_set, list):
-            raise ConnectParameterError('get_vid_value')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         for vid_data in vid_data_set:
             if 'vid' in vid_data:
                 if isinstance(vid_data['vid'], int):
                     # 本来はこんなに幅が広くないが将来的に拡張する可能性と、バージョン確認などに対応
                     if vid_data['vid'] < 0 or vid_data['vid'] > 254:
-                        raise ConnectParameterError('get_vid_value')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
             else:
-                raise ConnectParameterError('get_vid_value')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
         return self._parse_vid_response(vid_data_set, self._send_data_wait_response(self._make_get_vid_value_command(vid_data_set)))
 
@@ -251,13 +251,13 @@ class Connect(object):
     def _parse_vid_response(self, vid_data_set, response_data):
         ''' Parse VID response data '''
         if not isinstance(response_data, list):
-            raise ConnectParameterError('_parse_vid_response')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if len(response_data) < 5:
-            raise ConnectParameterError('_parse_vid_response')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if not response_data[1] == Connect.COMMAND_OP_GET_VID_VALUE:
-            raise ConnectParameterError('_parse_vid_response')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         vid_num = len(response_data) - 4 # [Todo]:本来は4引くだけだが、ver.2.2現在バグで0x00が多くついてくる
         if not len(vid_data_set) == vid_num:
@@ -265,7 +265,7 @@ class Connect(object):
                 if response_data[3 + len(vid_data_set)] == 0x00:
                     vid_num -= 1
                 else:
-                    raise ConnectParameterError('_parse_vid_response')
+                    raise ConnectParameterError(sys._getframe().f_code.co_name)
                     return
         for i in range(0, vid_num):
             vid_data_set[i]['vdt'] = response_data[3 + i]
@@ -274,26 +274,26 @@ class Connect(object):
     def set_pwm_pulse_width(self, pwm_data_set):
         ''' V-Sido CONNECT "Set_PWM_Pulse_Width" command '''
         if not isinstance(pwm_data_set, list):
-            raise ConnectParameterError('set_pwm_pulse_width')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         for pwm_data in pwm_data_set:
             if 'iid' in pwm_data:
                 if isinstance(pwm_data['iid'], int):
                     if pwm_data['iid'] < 6 or pwm_data['iid'] > 7:
-                        raise ConnectParameterError('set_pwm_pulse_width')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
             else:
-                raise ConnectParameterError('set_pwm_pulse_width')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
             if self._pwm_cycle is None:
                 self._pwm_cycle = self.get_vid_pwm_cycle()
             if 'pulse' in pwm_data:
                 if isinstance(pwm_data['pulse'], int):
                     if pwm_data['pulse'] < 0 or pwm_data['pulse'] > self._pwm_cycle:
-                        raise ConnectParameterError('set_pwm_pulse_width')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
             else:
-                raise ConnectParameterError('set_pwm_pulse_width')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
         self._send_data(self._make_set_pwm_pulse_width_command(pwm_data_set))
 
@@ -314,59 +314,59 @@ class Connect(object):
     def set_ik(self, ik_data_set, feedback=False):
         ''' V-Sido CONNECT "Set_IK" command '''
         if not isinstance(ik_data_set, list):
-            raise ConnectParameterError('set_ik')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         for ik_data in ik_data_set:
             if 'kid' in ik_data:
                 if isinstance(ik_data['kid'], int):
                     if ik_data['kid'] < 0 or ik_data['kid'] > 15:
-                        raise ConnectParameterError('set_ik')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
             else:
-                raise ConnectParameterError('set_ik')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
             if 'kdt' in ik_data:
                 if isinstance(ik_data['kdt'], dict):
                     if 'x' in ik_data['kdt']:
                         if isinstance(ik_data['kdt']['x'], int):
                             if ik_data['kdt']['x'] < -180 or ik_data['kdt']['x'] > 180:
-                                raise ConnectParameterError('set_ik')
+                                raise ConnectParameterError(sys._getframe().f_code.co_name)
                                 return
                         else:
-                            raise ConnectParameterError('set_ik')
+                            raise ConnectParameterError(sys._getframe().f_code.co_name)
                             return
                     else:
-                        raise ConnectParameterError('set_ik')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                     if 'y' in ik_data['kdt']:
                         if isinstance(ik_data['kdt']['y'], int):
                             if ik_data['kdt']['y'] < -180 or ik_data['kdt']['y'] > 180:
-                                raise ConnectParameterError('set_ik')
+                                raise ConnectParameterError(sys._getframe().f_code.co_name)
                                 return
                         else:
-                            raise ConnectParameterError('set_ik')
+                            raise ConnectParameterError(sys._getframe().f_code.co_name)
                             return
                     else:
-                        raise ConnectParameterError('set_ik')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
                     if 'z' in ik_data['kdt']:
                         if isinstance(ik_data['kdt']['z'], int):
                             if ik_data['kdt']['z'] < -180 or ik_data['kdt']['z'] > 180:
-                                raise ConnectParameterError('set_ik')
+                                raise ConnectParameterError(sys._getframe().f_code.co_name)
                                 return
                         else:
-                            raise ConnectParameterError('set_ik')
+                            raise ConnectParameterError(sys._getframe().f_code.co_name)
                             return
                     else:
-                        raise ConnectParameterError('set_ik')
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
                         return
                 else:
-                    raise ConnectParameterError('set_ik')
+                    raise ConnectParameterError(sys._getframe().f_code.co_name)
                     return
             else:
-                raise ConnectParameterError('set_servo_angle')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
         if not isinstance(feedback, bool):
-            raise ConnectParameterError('set_ik')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if not feedback:
             self._send_data(self._make_set_ik_command(ik_data_set, feedback))
@@ -394,13 +394,13 @@ class Connect(object):
     def _parse_ik_response(self, response_data):
         ''' Parse IK response data '''
         if not isinstance(response_data, list):
-            raise ConnectParameterError('_parse_ik_response')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if len(response_data) < 9:
-            raise ConnectParameterError('_parse_ik_response')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if not response_data[1] == Connect.COMMAND_OP_IK:
-            raise ConnectParameterError('_parse_ik_response')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         ik_num = (len(response_data) - 5) // 4
         ik_data_set = []
@@ -418,17 +418,17 @@ class Connect(object):
         ''' V-Sido CONNECT "Walk" command '''
         if isinstance(forward, int):
             if forward < -100 or forward > 100:
-                raise ConnectParameterError('walk')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
         else:
-            raise ConnectParameterError('walk')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if isinstance(turn_cw, int):
             if turn_cw < -100 or turn_cw > 100:
-                raise ConnectParameterError('walk')
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
                 return
         else:
-            raise ConnectParameterError('walk')
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         self._send_data(self._make_walk_command(forward, turn_cw))
 
@@ -449,7 +449,7 @@ class Connect(object):
     def _send_data(self, command_data):
         ''' Send data to V-Sido CONNECT via serial port '''
         if not self._connected:
-            raise ConnectNotConnectedError('_send_data')
+            raise ConnectNotConnectedError(sys._getframe().f_code.co_name)
             return
         data_bytes = b''
         for data in command_data:
