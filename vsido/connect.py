@@ -20,11 +20,13 @@ class Connect(object):
     COMMAND_OP_GPIO = 0x69; # 'i'
 
     def __init__(self):
+        self._connected = False
         self._receive_buffer = []
         self._response_waiting_buffer = []
         self._post_receive_process = self._post_receive
         self._post_send_process = self._post_send
-        self._firmware_version = 0
+        self._firmware_version = None
+        self._pwm_cycle = None
 
     def set_post_receive_process(self, post_receive_process):
         ''' Set post receive process '''
@@ -51,18 +53,20 @@ class Connect(object):
     def connect(self, port, baudrate=DEFAULT_BAUTRATE):
         ''' connect to V-Sido CONNECT RC via serial port '''
         try:
-            self.serial = serial.serial_for_url(port, baudrate, timeout=1)
+            self._serial = serial.serial_for_url(port, baudrate, timeout=1)
         except serial.SerialException:
             sys.stderr.write("could not open port %r: %s\n" % (port, e))
             raise
+        self._connected = True
         self._start_receiver()
-        #time.sleep(0.1)
-        #self._firmware_version = self.get_vid_version()[0]['vdt']
+        time.sleep(0.5)
+        self._firmware_version = self.get_vid_version()
 
     def disconnect(self):
         ''' disconnect to V-Sido CONNECT RC via serial port '''
         self._stop_receiver()
-        self.serial.close()
+        self._serial.close()
+        self._connected = False
 
     def _start_receiver(self):
         """ start receiver thread """
@@ -80,7 +84,7 @@ class Connect(object):
         """ Receiving data """
         try:
             while self._receiver_alive:
-                data = self.serial.read(1)
+                data = self._serial.read(1)
                 if len(data) > 0:
                     if data == 0xff:
                         self._receive_buffer = []
@@ -151,19 +155,23 @@ class Connect(object):
             self.set_vid_value([{"vid":5, "vdt":1}])
         else:
             self.set_vid_value([{"vid":5, "vdt":0}])
+        if self._pwm_cycle is None:
+            self._pwm_cycle = self.get_vid_pwm_cycle()
+
 
     def set_vid_pwm_cycle(self, pwm_cycle):
         ''' V-Sido CONNECT VID_PWM_CYCLE value setting(高級化) '''
         if not isinstance(pwm_cycle, int):
             raise ConnectParameterError('set_vid_pwm_cycle')
             return
-        if pwm_cycle < 0 or pwm_cycle > 16384:
+        if pwm_cycle < 4 or pwm_cycle > 16384:
             raise ConnectParameterError('set_vid_pwm_cycle')
             return
         pwm_cycle_data = round(pwm_cycle / 4)
         # vdt = self._make_2byte_data # [Todo]:本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
         vdt = [pwm_cycle_data // 256, pwm_cycle_data % 256]
         self.set_vid_value([{"vid":6, "vdt":vdt[0]}, {"vid":7, "vdt":vdt[1]}])
+        self._pwm_cycle = pwm_cycle
 
     def set_vid_value(self, vid_data_set):
         ''' V-Sido CONNECT Set_VID_Value '''
@@ -205,7 +213,12 @@ class Connect(object):
 
     def get_vid_version(self):
         ''' get version value from vid '''
-        return self.get_vid_value([{"vid":254}])
+        return self.get_vid_value([{'vid':254}])[0]['vdt']
+
+    def get_vid_pwm_cycle(self):
+        ''' get pwm cycle value from vid '''
+        pwd_data = self.get_vid_value([{'vid':6}, {'vid':7}])
+        return (pwd_data[0]['vdt'] * 256 + pwd_data[1]['vdt']) * 4
 
     def get_vid_value(self, vid_data_set):
         ''' V-Sido CONNECT Get_VID_Value '''
@@ -237,25 +250,69 @@ class Connect(object):
 
     def _parse_vid_response(self, vid_data_set, response_data):
         ''' Parse VID response data '''
-        print(response_data)
+        if not isinstance(response_data, list):
+            raise ConnectParameterError('_parse_vid_response')
+            return
         if len(response_data) < 5:
-            raise ConnectParameterError('parse_vid_response')
+            raise ConnectParameterError('_parse_vid_response')
             return
         if not response_data[1] == Connect.COMMAND_OP_GET_VID_VALUE:
-            raise ConnectParameterError('parse_vid_response')
+            raise ConnectParameterError('_parse_vid_response')
             return
         vid_num = len(response_data) - 4 # [Todo]:本来は4引くだけだが、ver.2.2現在バグで0x00が多くついてくる
         if not len(vid_data_set) == vid_num:
             if len(vid_data_set) == vid_num - 1: # [Todo]:仮に00がついていてもOKなロジックとする
-                if not response_data[3 + len(vid_data_set)] == 0:
-                    raise ConnectParameterError('parse_vid_response')
+                if response_data[3 + len(vid_data_set)] == 0x00:
+                    vid_num -= 1
+                else:
+                    raise ConnectParameterError('_parse_vid_response')
                     return
         for i in range(0, vid_num):
             vid_data_set[i]['vdt'] = response_data[3 + i]
         return vid_data_set
 
+    def set_pwm_pulse_width(self, pwm_data_set):
+        ''' V-Sido CONNECT "Set_PWM_Pulse_Width" command '''
+        if not isinstance(pwm_data_set, list):
+            raise ConnectParameterError('set_pwm_pulse_width')
+            return
+        for pwm_data in pwm_data_set:
+            if 'iid' in pwm_data:
+                if isinstance(pwm_data['iid'], int):
+                    if pwm_data['iid'] < 6 or pwm_data['iid'] > 7:
+                        raise ConnectParameterError('set_pwm_pulse_width')
+                        return
+            else:
+                raise ConnectParameterError('set_pwm_pulse_width')
+                return
+            if self._pwm_cycle is None:
+                self._pwm_cycle = self.get_vid_pwm_cycle()
+            if 'pulse' in pwm_data:
+                if isinstance(pwm_data['pulse'], int):
+                    if pwm_data['pulse'] < 0 or pwm_data['pulse'] > self._pwm_cycle:
+                        raise ConnectParameterError('set_pwm_pulse_width')
+                        return
+            else:
+                raise ConnectParameterError('set_pwm_pulse_width')
+                return
+        self._send_data(self._make_set_pwm_pulse_width_command(pwm_data_set))
+
+    def _make_set_pwm_pulse_width_command(self, pwm_data_set):
+        ''' Genarate "Set_PWM_Pulse_Width" command data '''
+        data = []
+        data.append(Connect.COMMAND_ST) # ST
+        data.append(Connect.COMMAND_OP_PWM) # OP
+        data.append(0x00) # LN仮置き
+        for pwm_data in pwm_data_set:
+            data.append(pwm_data['iid']) # VID
+            pulse_data = self._make_2byte_data(round(pwm_data['pulse'] / 4))
+            data.append(pulse_data[0]) # ANGLE
+            data.append(pulse_data[1]) # ANGLE
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
     def set_ik(self, ik_data_set, feedback=False):
-        ''' V-Sido CONNECT "Set_ServoAngle" command '''
+        ''' V-Sido CONNECT "Set_IK" command '''
         if not isinstance(ik_data_set, list):
             raise ConnectParameterError('set_ik')
             return
@@ -317,7 +374,7 @@ class Connect(object):
             return self._parse_ik_response(self._send_data_wait_response(self._make_set_ik_command(ik_data_set, feedback)))
 
     def _make_set_ik_command(self, ik_data_set, feedback):
-        ''' Genarate "set_ik" command data '''
+        ''' Genarate "Set_IK" command data '''
         data = []
         data.append(Connect.COMMAND_ST) # ST
         data.append(Connect.COMMAND_OP_IK) # OP
@@ -336,11 +393,14 @@ class Connect(object):
 
     def _parse_ik_response(self, response_data):
         ''' Parse IK response data '''
+        if not isinstance(response_data, list):
+            raise ConnectParameterError('_parse_ik_response')
+            return
         if len(response_data) < 9:
-            raise ConnectParameterError('parse_ik_response')
+            raise ConnectParameterError('_parse_ik_response')
             return
         if not response_data[1] == Connect.COMMAND_OP_IK:
-            raise ConnectParameterError('parse_ik_response')
+            raise ConnectParameterError('_parse_ik_response')
             return
         ik_num = (len(response_data) - 5) // 4
         ik_data_set = []
@@ -388,16 +448,23 @@ class Connect(object):
 
     def _send_data(self, command_data):
         ''' Send data to V-Sido CONNECT via serial port '''
+        if not self._connected:
+            raise ConnectNotConnectedError('_send_data')
+            return
         data_bytes = b''
         for data in command_data:
             data_bytes += data.to_bytes(1, byteorder='little')
-        self.serial.write(data_bytes)
+        self._serial.write(data_bytes)
         self._post_send_process(command_data)
 
     def _send_data_wait_response(self, command_data):
         ''' Send data to V-Sido CONNECT via serial port and wait response'''
         self._response_waiting_buffer = []
-        self._send_data(command_data)
+        try:
+            self._send_data(command_data)
+        except ConnectNotConnectedError:
+            raise
+            return
         while not self._response_waiting_buffer:
             pass
         return self._response_waiting_buffer
@@ -422,6 +489,11 @@ class Connect(object):
 
 class ConnectParameterError(Exception):
     ''' V-Sido CONNECT Command Parameter Error '''
+    pass
+
+
+class ConnectNotConnectedError(Exception):
+    ''' V-Sido CONNECT Not Connected Error '''
     pass
 
 
