@@ -1,3 +1,7 @@
+# coding:utf-8
+'''
+Python3用V-Sido Connectライブラリ
+'''
 import sys
 import threading
 import types
@@ -5,52 +9,57 @@ import serial
 
 DEFAULT_BAUTRATE = 115200
 
-# V-Sido CONNECTのためのclass
 class Connect(object):
+    '''
+    V-Sido CONNECTのためのクラス
+    '''
 
-    # V-Sidoで利用するコマンドやオペランドのクラス変数定義
-    COMMAND_ST = 0xff;
-    COMMAND_OP_ANGLE = 0x6f; # 'o'
-    COMMAND_OP_SET_VID_VALUE = 0x73; # 's'
-    COMMAND_OP_GET_VID_VALUE = 0x67; # 'g'
-    COMMAND_OP_PWM = 0x70; # 'p'
-    COMMAND_OP_IK = 0x6b; # 'k'
-    COMMAND_OP_WALK = 0x74; # 't'
-    COMMAND_OP_GPIO = 0x69; # 'i'
+    _COMMAND_ST = 0xff;
+    _COMMAND_OP_ANGLE = 0x6f; # 'o'
+    _COMMAND_OP_SET_VID_VALUE = 0x73; # 's'
+    _COMMAND_OP_GET_VID_VALUE = 0x67; # 'g'
+    _COMMAND_OP_PWM = 0x70; # 'p'
+    _COMMAND_OP_IK = 0x6b; # 'k'
+    _COMMAND_OP_WALK = 0x74; # 't'
+    _COMMAND_OP_GPIO = 0x69; # 'i'
 
     def __init__(self):
+        '''
+        '''
         self._connected = False
         self._receive_buffer = []
         self._response_waiting_buffer = []
-        self._post_receive_process = self._post_receive
-        self._post_send_process = self._post_send
         self._firmware_version = None
         self._pwm_cycle = None
+        self._post_receive_process = self._post_receive
+        self._post_send_process = self._post_send
 
     def set_post_receive_process(self, post_receive_process):
-        ''' Set post receive process '''
+        ''' レスポンス一式受信後の処理を定義 '''
         if isinstance(post_receive_process, types.FunctionType):
             self._post_receive_process = post_receive_process
         else:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
 
     def set_post_send_process(self, post_send_process):
-        ''' Set post send process '''
+        ''' コマンド一式送信後の処理を定義 '''
         if isinstance(post_send_process, types.FunctionType):
             self._post_send_process = post_send_process
         else:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
 
     def _post_receive(self, received_data):
-        ''' post receive prosess dummy '''
+        ''' 受信後処理のダミー '''
         pass
 
     def _post_send(self, sent_data):
-        ''' post send prosess dummy '''
+        ''' 送信後処理のダミー '''
         pass
 
     def connect(self, port, baudrate=DEFAULT_BAUTRATE):
-        ''' connect to V-Sido CONNECT RC via serial port '''
+        ''' V-Sido CONNECTにシリアルポート経由で接続 '''
+        if self._connected:
+            return
         try:
             self._serial = serial.serial_for_url(port, baudrate, timeout=1)
         except serial.SerialException:
@@ -61,25 +70,27 @@ class Connect(object):
         self._firmware_version = self.get_vid_version()
 
     def disconnect(self):
-        ''' disconnect to V-Sido CONNECT RC via serial port '''
+        ''' V-Sido CONNECTからの切断 '''
+        if not self._connected:
+            return
         self._stop_receiver()
         self._serial.close()
         self._connected = False
 
     def _start_receiver(self):
-        """ start receiver thread """
+        ''' 受信スレッドの立ち上げ '''
         self._receiver_alive = True
         self._receiver_thread = threading.Thread(target=self._receiver)
         self._receiver_thread.setDaemon(True)
         self._receiver_thread.start()
 
     def _stop_receiver(self):
-        """ start receiver thread """
+        ''' 受信スレッドの停止 '''
         self._receiver_alive = False
         self._receiver_thread.join()
 
     def _receiver(self):
-        """ Receiving data """
+        ''' 受信スレッドの処理 '''
         try:
             while self._receiver_alive:
                 data = self._serial.read(1)
@@ -99,7 +110,7 @@ class Connect(object):
             raise
 
     def set_servo_angle(self, angle_data_set, cycle_time):
-        ''' V-Sido CONNECT "Set_ServoAngle" command '''
+        ''' V-Sido CONNECTに「目標確度設定」コマンドの送信 '''
         if not isinstance(angle_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
@@ -130,10 +141,10 @@ class Connect(object):
         self._send_data(self._make_set_servo_angle_command(angle_data_set, cycle_time))
 
     def _make_set_servo_angle_command(self, angle_data_set, cycle_time):
-        ''' Genarate "Walk" command data '''
+        ''' 「目標確度設定」コマンドのデータ生成 '''
         data = []
-        data.append(Connect.COMMAND_ST) # ST
-        data.append(Connect.COMMAND_OP_ANGLE) # OP
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_ANGLE) # OP
         data.append(0x00) # LN仮置き
         data.append(round(cycle_time / 10)) # CYC(引数はmsec単位で来るが、データは10msec単位で送る)
         for angle_data in angle_data_set:
@@ -145,20 +156,20 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def set_vid_use_pwm(self, use=True):
-        ''' V-Sido CONNECT VID_USE_PWM value setting(高級化) '''
+        ''' PWM利用を利用するかどうかのVID設定の書き込み '''
         if not isinstance(use, bool):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if use:
-            self.set_vid_value([{"vid":5, "vdt":1}])
+            self.set_vid_value([{'vid':5, 'vdt':1}])
         else:
-            self.set_vid_value([{"vid":5, "vdt":0}])
+            self.set_vid_value([{'vid':5, 'vdt':0}])
         if self._pwm_cycle is None:
             self._pwm_cycle = self.get_vid_pwm_cycle()
 
 
     def set_vid_pwm_cycle(self, pwm_cycle):
-        ''' V-Sido CONNECT VID_PWM_CYCLE value setting(高級化) '''
+        ''' PWM周期を設定するVID設定の書き込み '''
         if not isinstance(pwm_cycle, int):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
@@ -168,11 +179,11 @@ class Connect(object):
         pwm_cycle_data = round(pwm_cycle / 4)
         # vdt = self._make_2byte_data # [Todo]:本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
         vdt = [pwm_cycle_data // 256, pwm_cycle_data % 256]
-        self.set_vid_value([{"vid":6, "vdt":vdt[0]}, {"vid":7, "vdt":vdt[1]}])
+        self.set_vid_value([{'vid':6, 'vdt':vdt[0]}, {'vid':7, 'vdt':vdt[1]}])
         self._pwm_cycle = pwm_cycle
 
     def set_vid_value(self, vid_data_set):
-        ''' V-Sido CONNECT Set_VID_Value '''
+        ''' V-Sido CONNECTに「VID設定」コマンドの送信 '''
         if not isinstance(vid_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
@@ -198,10 +209,10 @@ class Connect(object):
         self._send_data(self._make_set_vid_value_command(vid_data_set))
 
     def _make_set_vid_value_command(self, vid_data_set):
-        ''' Generate "Set_VID_Value" command data '''
+        ''' 「VID設定」コマンドのデータ生成 '''
         data = []
-        data.append(Connect.COMMAND_ST) # ST
-        data.append(Connect.COMMAND_OP_SET_VID_VALUE) # OP
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_SET_VID_VALUE) # OP
         data.append(0x00) # LN仮置き
         for vid_data in vid_data_set:
             data.append(vid_data['vid']) # VID
@@ -210,16 +221,16 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def get_vid_version(self):
-        ''' get version value from vid '''
+        ''' バージョン情報のVID設定の取得 '''
         return self.get_vid_value([{'vid':254}])[0]['vdt']
 
     def get_vid_pwm_cycle(self):
-        ''' get pwm cycle value from vid '''
+        ''' PWM周期のVID設定の取得 '''
         pwd_data = self.get_vid_value([{'vid':6}, {'vid':7}])
         return (pwd_data[0]['vdt'] * 256 + pwd_data[1]['vdt']) * 4
 
     def get_vid_value(self, vid_data_set):
-        ''' V-Sido CONNECT Get_VID_Value '''
+        ''' V-Sido CONNECTに「VID要求」コマンドを送信 '''
         if not isinstance(vid_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
@@ -236,10 +247,10 @@ class Connect(object):
         return self._parse_vid_response(vid_data_set, self._send_data_wait_response(self._make_get_vid_value_command(vid_data_set)))
 
     def _make_get_vid_value_command(self, vid_data_set):
-        ''' Generate "Get_VID_Value" command data '''
+        ''' 「VID要求」コマンドのデータ生成 '''
         data = []
-        data.append(Connect.COMMAND_ST) # ST
-        data.append(Connect.COMMAND_OP_GET_VID_VALUE) # OP
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_GET_VID_VALUE) # OP
         data.append(0x00) # LN仮置き
         for vid_data in vid_data_set:
             data.append(vid_data['vid']) # VID
@@ -247,14 +258,14 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def _parse_vid_response(self, vid_data_set, response_data):
-        ''' Parse VID response data '''
+        ''' 「VID要求」のレスポンスデータのパース '''
         if not isinstance(response_data, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if len(response_data) < 5:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
-        if not response_data[1] == Connect.COMMAND_OP_GET_VID_VALUE:
+        if not response_data[1] == Connect._COMMAND_OP_GET_VID_VALUE:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         vid_num = len(response_data) - 4 # [Todo]:本来は4引くだけだが、ver.2.2現在バグで0x00が多くついてくる
@@ -270,7 +281,7 @@ class Connect(object):
         return vid_data_set
 
     def set_pwm_pulse_width(self, pwm_data_set):
-        ''' V-Sido CONNECT "Set_PWM_Pulse_Width" command '''
+        ''' V-Sido CONNECTに「PWM設定」コマンドの送信 '''
         if not isinstance(pwm_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
@@ -296,10 +307,10 @@ class Connect(object):
         self._send_data(self._make_set_pwm_pulse_width_command(pwm_data_set))
 
     def _make_set_pwm_pulse_width_command(self, pwm_data_set):
-        ''' Genarate "Set_PWM_Pulse_Width" command data '''
+        ''' 「PWM設定」コマンドのデータ生成 '''
         data = []
-        data.append(Connect.COMMAND_ST) # ST
-        data.append(Connect.COMMAND_OP_PWM) # OP
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_PWM) # OP
         data.append(0x00) # LN仮置き
         for pwm_data in pwm_data_set:
             data.append(pwm_data['iid']) # VID
@@ -310,7 +321,7 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def set_ik(self, ik_data_set, feedback=False):
-        ''' V-Sido CONNECT "Set_IK" command '''
+        ''' V-Sido CONNECTに「IK設定」コマンドの送信 '''
         if not isinstance(ik_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
@@ -372,10 +383,10 @@ class Connect(object):
             return self._parse_ik_response(self._send_data_wait_response(self._make_set_ik_command(ik_data_set, feedback)))
 
     def _make_set_ik_command(self, ik_data_set, feedback):
-        ''' Genarate "Set_IK" command data '''
+        ''' 「IK設定」コマンドのデータ生成 '''
         data = []
-        data.append(Connect.COMMAND_ST) # ST
-        data.append(Connect.COMMAND_OP_IK) # OP
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_IK) # OP
         data.append(0x00) # LN仮置き
         if not feedback:
             data.append(0x01) # IKF
@@ -390,14 +401,14 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def _parse_ik_response(self, response_data):
-        ''' Parse IK response data '''
+        ''' 「IK設定」のレスポンスデータのパース '''
         if not isinstance(response_data, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         if len(response_data) < 9:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
-        if not response_data[1] == Connect.COMMAND_OP_IK:
+        if not response_data[1] == Connect._COMMAND_OP_IK:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
             return
         ik_num = (len(response_data) - 5) // 4
@@ -413,7 +424,7 @@ class Connect(object):
         return ik_data_set
 
     def walk(self, forward, turn_cw):
-        ''' V-Sido CONNECT "Walk" command '''
+        ''' V-Sido CONNECTに「移動情報指定（歩行）」コマンドの送信 '''
         if isinstance(forward, int):
             if forward < -100 or forward > 100:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -431,10 +442,10 @@ class Connect(object):
         self._send_data(self._make_walk_command(forward, turn_cw))
 
     def _make_walk_command(self, forward, turn_cw):
-        ''' Genarate "Walk" command data '''
+        ''' 「移動情報指定（歩行）」コマンドのデータ生成 '''
         data = []
-        data.append(Connect.COMMAND_ST) # ST
-        data.append(Connect.COMMAND_OP_WALK) # OP
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_WALK) # OP
         data.append(0x00) # LN仮置き
         data.append(0x00) # WAD(Utilityでは0で固定)
         data.append(0x02) # WLN(現在2で固定)
@@ -444,22 +455,22 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
-    def _send_data(self, command_data):
-        ''' Send data to V-Sido CONNECT via serial port '''
+    def _send_data(self, _COMMAND_data):
+        ''' V-Sido CONNECTにシリアル経由でデータ送信 '''
         if not self._connected:
             raise ConnectNotConnectedError(sys._getframe().f_code.co_name)
             return
         data_bytes = b''
-        for data in command_data:
+        for data in _COMMAND_data:
             data_bytes += data.to_bytes(1, byteorder='little')
         self._serial.write(data_bytes)
-        self._post_send_process(command_data)
+        self._post_send_process(_COMMAND_data)
 
-    def _send_data_wait_response(self, command_data):
-        ''' Send data to V-Sido CONNECT via serial port and wait response'''
+    def _send_data_wait_response(self, _COMMAND_data):
+        ''' V-Sido CONNECTにシリアル経由でデータ送信して受信を待つ '''
         self._response_waiting_buffer = []
         try:
-            self._send_data(command_data)
+            self._send_data(_COMMAND_data)
         except ConnectNotConnectedError:
             raise
             return
@@ -468,21 +479,20 @@ class Connect(object):
         return self._response_waiting_buffer
 
     def _make_2byte_data(self, value):
-        ''' 2Byte data (see "V-Sido CONNECT RC Command Reference") '''
+        ''' 2Byteデータの処理 (「V-Sido CONNECT RC Command Reference」参照) '''
         value_bytes = value.to_bytes(2, byteorder='big', signed=True)
         return [(value_bytes[1] << 1) & 0x00ff, (value_bytes[0] << 2) & 0x00ff]
 
-    def _adjust_ln_sum(self, command_data):
-        ''' adjust LN(Length) & SUM(CheckSum) in command data '''
-        #
-        ln_pos = 1 if command_data[0] == 0x0c or command_data[0] == 0x0d or command_data[0] == 0x53 or command_data[0] == 0x54 else 2
-        if len(command_data) > 3:
-            command_data[ln_pos] = len(command_data);
+    def _adjust_ln_sum(self, _COMMAND_data):
+        ''' データ中のLN(Length)とSUM(CheckSum)の調整 '''
+        ln_pos = 1 if _COMMAND_data[0] == 0x0c or _COMMAND_data[0] == 0x0d or _COMMAND_data[0] == 0x53 or _COMMAND_data[0] == 0x54 else 2
+        if len(_COMMAND_data) > 3:
+            _COMMAND_data[ln_pos] = len(_COMMAND_data);
             sum = 0;
-            for data in command_data:
+            for data in _COMMAND_data:
                 sum ^= data
-            command_data[len(command_data) - 1] = sum
-            return command_data
+            _COMMAND_data[len(_COMMAND_data) - 1] = sum
+            return _COMMAND_data
 
 
 class ConnectParameterError(Exception):
@@ -516,7 +526,7 @@ if __name__ == '__main__':
             sent_data_str.append('%02x' % data)
         print('> ' + ' '.join(sent_data_str))
 
-    print("=== Python V-Sido TEST ===")
+    print('=== Python V-Sido TEST ===')
 
     # 引数からシリアルポートを決定する
     if len(sys.argv) == 1:
@@ -528,19 +538,19 @@ if __name__ == '__main__':
     # V-Sido CONNECT用のインスタンス生成（初期化でシリアルポートをオープンする）
     vsidoconnect = Connect()
     # シリアルポートをオープン、受信スレッドの立ち上げ
-    print("Connecting to robot...", end="")
+    print('Connecting to robot...', end='')
     try:
         vsidoconnect.connect(port, baudrate)
     except serial.SerialException:
-        print("fail.")
+        print('fail.')
         sys.exit(1)
-    print("done.")
+    print('done.')
 
     # 送受信後の処理を自作関数に置き換える方法
     vsidoconnect.set_post_send_process(post_send)
     vsidoconnect.set_post_receive_process(post_receive)
-    print("exit: Ctrl-C")
-    print("")
+    print('exit: Ctrl-C')
+    print('')
 
     # テストで歩行コマンド
     vsidoconnect.walk(100, 0)
