@@ -1,5 +1,4 @@
 import sys
-import time
 import threading
 import types
 import serial
@@ -59,7 +58,6 @@ class Connect(object):
             raise
         self._connected = True
         self._start_receiver()
-        time.sleep(0.5)
         self._firmware_version = self.get_vid_version()
 
     def disconnect(self):
@@ -86,7 +84,7 @@ class Connect(object):
             while self._receiver_alive:
                 data = self._serial.read(1)
                 if len(data) > 0:
-                    if data == 0xff:
+                    if data == b'\xff':
                         self._receive_buffer = []
                     self._receive_buffer.append(int.from_bytes(data, byteorder='big'))
                     if len(self._receive_buffer) > 3:
