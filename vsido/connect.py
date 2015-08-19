@@ -16,14 +16,16 @@ class Connect(object):
     '''
 
     _COMMAND_ST = 0xff;
-    _COMMAND_OP_ANGLE = 0x6f; # 'o'
-    _COMMAND_OP_SET_VID_VALUE = 0x73; # 's'
-    _COMMAND_OP_GET_VID_VALUE = 0x67; # 'g'
-    _COMMAND_OP_GPIO = 0x69; # 'i'
-    _COMMAND_OP_PWM = 0x70; # 'p'
-    _COMMAND_OP_IK = 0x6b; # 'k'
-    _COMMAND_OP_WALK = 0x74; # 't'
-    _COMMAND_OP_ACK = 0x21; # '!'
+    _COMMAND_OP_ACK = 0x21 # '!'
+    _COMMAND_OP_ANGLE = 0x6f # 'o'
+    _COMMAND_OP_SET_VID_VALUE = 0x73 # 's'
+    _COMMAND_OP_GET_VID_VALUE = 0x67 # 'g'
+    _COMMAND_OP_WRITE_FLASH = 0x77 # 'w'
+    _COMMAND_OP_GPIO = 0x69 # 'i'
+    _COMMAND_OP_PWM = 0x70 # 'p'
+    _COMMAND_OP_CHECK_SERVO = 0x6a # 'j'
+    _COMMAND_OP_IK = 0x6b # 'k'
+    _COMMAND_OP_WALK = 0x74 # 't'
 
     def __init__(self):
         '''
@@ -437,6 +439,30 @@ class Connect(object):
             vid_data_set[i]['vdt'] = response_data[3 + i]
         return vid_data_set
 
+    def write_flash	(self):
+        '''
+        V-Sido CONNECTに「フラッシュ書き込み要求」コマンドの送信
+
+        現在のVID設定情報をV-Sido CONNECTのフラッシュに書き込む。
+
+        Args:
+            なし
+        Returns:
+            なし
+        Raises:
+            なし
+        '''
+        self._send_data(self._make_write_flash_command())
+
+    def _make_write_flash_command(self):
+        ''' 「フラッシュ書き込み要求」コマンドのデータ生成 '''
+        data = []
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_WRITE_FLASH) # OP
+        data.append(0x00) # LN仮置き
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
     def set_gpio_config	(self, gpio_data_set):
         '''
         V-Sido CONNECTに「IO設定」コマンドの送信
@@ -532,6 +558,49 @@ class Connect(object):
             data.append(pulse_data[1]) # ANGLE
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
+
+    def check_connected_servo(self):
+        '''
+        V-Sido CONNECTに「接続確認要求」コマンドを送信
+
+        サーボモータの接続確認を行う。
+
+        Args:
+            なし
+        Returns:
+            VID設定情報を書いた辞書データのリスト(引数vid_data_setにvdtを加えたもの)
+                example:
+                [{'vid':6, 'vdt':0x0e}, {'vid':7, 'vdt':0xa6}]
+        Raises:
+            なし
+        '''
+        return self._parse_check_servo_response(self._send_data_wait_response(self._make_check_connected_servo_command()))
+
+    def _make_check_connected_servo_command(self):
+        ''' 「接続確認要求」コマンドのデータ生成 '''
+        data = []
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_CHECK_SERVO) # OP
+        data.append(0x00) # LN仮置き
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
+    def _parse_check_servo_response(self, response_data):
+        ''' 「接続確認要求」のレスポンスデータのパース '''
+        if not isinstance(response_data, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        if len(response_data) < 6:
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+        if not response_data[1] == Connect._COMMAND_OP_CHECK_SERVO:
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+        sid_num = (len(response_data) - 4) // 2
+        sid_data_set = []
+        for i in range(0, sid_num):
+            sid_data = {}
+            sid_data['sid'] = response_data[3 + i * 2]
+            sid_data['time'] = response_data[4 + i * 2]
+            sid_data_set.append(sid_data)
+        return sid_data_set
 
     def set_ik(self, ik_data_set, feedback=False):
         '''
