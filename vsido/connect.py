@@ -19,10 +19,10 @@ class Connect(object):
     _COMMAND_OP_ANGLE = 0x6f; # 'o'
     _COMMAND_OP_SET_VID_VALUE = 0x73; # 's'
     _COMMAND_OP_GET_VID_VALUE = 0x67; # 'g'
+    _COMMAND_OP_GPIO = 0x69; # 'i'
     _COMMAND_OP_PWM = 0x70; # 'p'
     _COMMAND_OP_IK = 0x6b; # 'k'
     _COMMAND_OP_WALK = 0x74; # 't'
-    _COMMAND_OP_GPIO = 0x69; # 'i'
     _COMMAND_OP_ACK = 0x21; # '!'
 
     def __init__(self):
@@ -80,6 +80,10 @@ class Connect(object):
 
     def _post_send(self, sent_data):
         ''' 送信後処理のダミー '''
+        sent_data_str = []
+        for data in sent_data:
+            sent_data_str.append('%02x' % data)
+        print('> ' + ' '.join(sent_data_str))
         pass
 
     def connect(self, port, baudrate=DEFAULT_BAUTRATE):
@@ -214,6 +218,38 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
+    def set_vid_io_mode(self, gpio_data_set):
+        '''
+        GPIOピン4～7番を入出力どちらで利用するかのVID設定の書き込み
+
+        GPIOピンの4～7番を入出力に使うかの設定を行う。
+
+        Args:
+
+        Returns:
+            なし
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+        '''
+        if not isinstance(gpio_data_set, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        mode_data = 0;
+        for gpio_data in gpio_data_set:
+            if 'iid' in gpio_data:
+                if isinstance(gpio_data['iid'], int):
+                    if not gpio_data['iid'] in [4, 5, 6, 7]:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            if 'mode' in gpio_data:
+                if isinstance(gpio_data['mode'], int):
+                    if not gpio_data['mode'] in [0, 1]:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            mode_data += (2 ** (gpio_data['iid'] - 1)) * gpio_data['mode']
+        self.set_vid_value([{'vid':3, 'vdt':mode_data}])
+
     def set_vid_use_pwm(self, use=True):
         '''
         PWM利用を利用するかどうかのVID設定の書き込み
@@ -236,7 +272,6 @@ class Connect(object):
                 self._pwm_cycle = self.get_vid_pwm_cycle()
         else:
             self.set_vid_value([{'vid':5, 'vdt':0}])
-
 
     def set_vid_pwm_cycle(self, pwm_cycle):
         '''
@@ -402,6 +437,52 @@ class Connect(object):
             vid_data_set[i]['vdt'] = response_data[3 + i]
         return vid_data_set
 
+    def set_gpio_config	(self, gpio_data_set):
+        '''
+        V-Sido CONNECTに「IO設定」コマンドの送信
+
+        GPIOピン4～7番の出力を設定する。
+        事前にset_vid_set_io_mode()でピンを出力に切り替えなければならない。
+        valueは0でLOW、1でHIGHとなる。
+
+        Args:
+            gpio_data_set 出力情報を書いた辞書データのリスト
+                example:
+                [{'iid':4, 'value':1}, {'iid':5, 'value':0}]
+        Returns:
+            なし
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+        '''
+        if not isinstance(gpio_data_set, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        for gpio_data in gpio_data_set:
+            if 'iid' in gpio_data:
+                if isinstance(gpio_data['iid'], int):
+                    if not gpio_data['iid'] in [4, 5, 6, 7]:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            if 'value' in gpio_data:
+                if isinstance(gpio_data['value'], int):
+                    if not gpio_data['value'] in [0, 1]:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+        self._send_data(self._make_set_gpio_config_command(gpio_data_set))
+
+    def _make_set_gpio_config_command(self, gpio_data_set):
+        ''' 「IO設定」コマンドのデータ生成 '''
+        data = []
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_GPIO) # OP
+        data.append(0x00) # LN仮置き
+        for gpio_data in gpio_data_set:
+            data.append(gpio_data['iid']) # VID
+            data.append(gpio_data['value']) # VAL
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
     def set_pwm_pulse_width(self, pwm_data_set):
         '''
         V-Sido CONNECTに「PWM設定」コマンドの送信
@@ -421,18 +502,18 @@ class Connect(object):
         '''
         if not isinstance(pwm_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
+        if self._pwm_cycle is None:
+            self._pwm_cycle = self.get_vid_pwm_cycle()
         for pwm_data in pwm_data_set:
             if 'iid' in pwm_data:
                 if isinstance(pwm_data['iid'], int):
-                    if pwm_data['iid'] in [6, 7]:
+                    if not pwm_data['iid'] in [6, 7]:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
-            if self._pwm_cycle is None:
-                self._pwm_cycle = self.get_vid_pwm_cycle()
             if 'pulse' in pwm_data:
                 if isinstance(pwm_data['pulse'], int):
-                    if pwm_data['pulse'] < 0 or pwm_data['pulse'] > self._pwm_cycle:
+                    if not 0 <= pwm_data['pulse'] <= self._pwm_cycle:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
