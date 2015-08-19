@@ -3,6 +3,7 @@
 Python3用V-Sido Connectライブラリ
 '''
 import sys
+import time
 import threading
 import types
 import serial
@@ -22,7 +23,7 @@ class Connect(object):
     _COMMAND_OP_IK = 0x6b; # 'k'
     _COMMAND_OP_WALK = 0x74; # 't'
     _COMMAND_OP_GPIO = 0x69; # 'i'
-    _COMMAND_OP_GPIO = 0x21; # '!'
+    _COMMAND_OP_ACK = 0x21; # '!'
 
     def __init__(self):
         '''
@@ -231,10 +232,10 @@ class Connect(object):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
         if use:
             self.set_vid_value([{'vid':5, 'vdt':1}])
+            if self._pwm_cycle is None:
+                self._pwm_cycle = self.get_vid_pwm_cycle()
         else:
             self.set_vid_value([{'vid':5, 'vdt':0}])
-        if self._pwm_cycle is None:
-            self._pwm_cycle = self.get_vid_pwm_cycle()
 
 
     def set_vid_pwm_cycle(self, pwm_cycle):
@@ -387,16 +388,16 @@ class Connect(object):
         if not isinstance(response_data, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
         if len(response_data) < 5:
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
         if not response_data[1] == Connect._COMMAND_OP_GET_VID_VALUE:
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
         vid_num = len(response_data) - 4 # TODO(hine.gdw@gmail.com):ver.2.2現在バグで0x00が多くついてくる(下で0x00を許容しているので、ここはこれでOK)
         if not len(vid_data_set) == vid_num:
             if len(vid_data_set) == vid_num - 1: # TODO(hine.gdw@gmail.com):仮に00がついていてもOKなロジックとする
                 if response_data[3 + len(vid_data_set)] == 0x00:
                     vid_num -= 1
                 else:
-                    raise ConnectParameterError(sys._getframe().f_code.co_name)
+                    raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
         for i in range(0, vid_num):
             vid_data_set[i]['vdt'] = response_data[3 + i]
         return vid_data_set
@@ -578,9 +579,9 @@ class Connect(object):
         if not isinstance(response_data, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
         if len(response_data) < 9:
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
         if not response_data[1] == Connect._COMMAND_OP_IK:
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
         ik_num = (len(response_data) - 5) // 4
         ik_data_set = []
         for i in range(0, ik_num):
@@ -634,25 +635,28 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
-    def _send_data(self, _COMMAND_data):
+    def _send_data(self, command_data):
         ''' V-Sido CONNECTにシリアル経由でデータ送信 '''
         if not self._connected:
             raise ConnectNotConnectedError(sys._getframe().f_code.co_name)
         data_bytes = b''
-        for data in _COMMAND_data:
+        for data in command_data:
             data_bytes += data.to_bytes(1, byteorder='little')
         self._serial.write(data_bytes)
-        self._post_send_process(_COMMAND_data)
+        self._post_send_process(command_data)
 
-    def _send_data_wait_response(self, _COMMAND_data):
+    def _send_data_wait_response(self, command_data, timeout=0.5):
         ''' V-Sido CONNECTにシリアル経由でデータ送信して受信を待つ '''
         self._response_waiting_buffer = []
         try:
-            self._send_data(_COMMAND_data)
+            self._send_data(command_data)
         except ConnectNotConnectedError:
             raise
+        wait_start = time.time()
         while not self._response_waiting_buffer:
-            pass
+            if not timeout == 0:
+                if time.time() - wait_start > timeout:
+                    raise ConnectTimeoutError(sys._getframe().f_code.co_name)
         return self._response_waiting_buffer
 
     def _make_2byte_data(self, value):
@@ -660,16 +664,16 @@ class Connect(object):
         value_bytes = value.to_bytes(2, byteorder='big', signed=True)
         return [(value_bytes[1] << 1) & 0x00ff, (value_bytes[0] << 2) & 0x00ff]
 
-    def _adjust_ln_sum(self, _COMMAND_data):
+    def _adjust_ln_sum(self, command_data):
         ''' データ中のLN(Length)とSUM(CheckSum)の調整 '''
-        ln_pos = 1 if _COMMAND_data[0] == 0x0c or _COMMAND_data[0] == 0x0d or _COMMAND_data[0] == 0x53 or _COMMAND_data[0] == 0x54 else 2
-        if len(_COMMAND_data) > 3:
-            _COMMAND_data[ln_pos] = len(_COMMAND_data);
+        ln_pos = 1 if command_data[0] == 0x0c or command_data[0] == 0x0d or command_data[0] == 0x53 or command_data[0] == 0x54 else 2
+        if len(command_data) > 3:
+            command_data[ln_pos] = len(command_data);
             sum = 0;
-            for data in _COMMAND_data:
+            for data in command_data:
                 sum ^= data
-            _COMMAND_data[len(_COMMAND_data) - 1] = sum
-            return _COMMAND_data
+            command_data[len(command_data) - 1] = sum
+            return command_data
 
 
 class ConnectParameterError(Exception):
@@ -679,6 +683,16 @@ class ConnectParameterError(Exception):
 
 class ConnectNotConnectedError(Exception):
     ''' V-Sido CONNECT Not Connected Error '''
+    pass
+
+
+class ConnectTimeoutError(Exception):
+    ''' V-Sido CONNECT Timeout Error '''
+    pass
+
+
+class ConnectInvalidResponseError(Exception):
+    ''' V-Sido CONNECT Invalid Response Error '''
     pass
 
 
