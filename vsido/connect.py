@@ -182,18 +182,18 @@ class Connect(object):
         for angle_data in angle_data_set:
             if 'sid' in angle_data:
                 if isinstance(angle_data['sid'], int):
-                    if angle_data['sid'] < 0 or angle_data['sid'] > 254:
+                    if not 0 <= angle_data['sid'] <= 254:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
             if 'angle' in angle_data:
                 if isinstance(angle_data['angle'], int) or isinstance(angle_data['angle'], float):
-                    if angle_data['angle'] < -180.0 or angle_data['angle'] > 180.0:
+                    if not -180.0 <= angle_data['angle'] <= 180.0:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
         if isinstance(cycle_time, int):
-            if cycle_time < 0 or cycle_time > 1000:
+            if not 0 <= cycle_time <= 1000:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
         else:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -254,7 +254,7 @@ class Connect(object):
         '''
         if not isinstance(pwm_cycle, int):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
-        if pwm_cycle < 4 or pwm_cycle > 16384:
+        if not 4 <= pwm_cycle <= 65536: # 16384 * 4まで
             raise ConnectParameterError(sys._getframe().f_code.co_name)
         pwm_cycle_data = round(pwm_cycle / 4)
         # vdt = self._make_2byte_data # TODO(hine.gdw@gmail.com):本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
@@ -285,14 +285,14 @@ class Connect(object):
             if 'vid' in vid_data:
                 if isinstance(vid_data['vid'], int):
                     # 本来はこんなに幅が広くないが将来的に拡張する可能性と、バージョン確認などに対応
-                    if vid_data['vid'] < 0 or vid_data['vid'] > 254:
+                    if not 0 <= vid_data['vid'] <= 254:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
             if 'vdt' in vid_data:
                 if isinstance(vid_data['vdt'], int) or isinstance(vid_data['vdt'], float):
                     # 2Byteデータの取り扱いについては仕様書を要確認
-                    if vid_data['vdt'] < 0 or vid_data['vdt'] > 254:
+                    if not 0 <= vid_data['vdt'] <= 254:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -366,7 +366,7 @@ class Connect(object):
             if 'vid' in vid_data:
                 if isinstance(vid_data['vid'], int):
                     # 本来はこんなに幅が広くないが将来的に拡張する可能性と、バージョン確認などに対応
-                    if vid_data['vid'] < 0 or vid_data['vid'] > 254:
+                    if not 0 <= vid_data['vid'] <= 254:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -424,7 +424,7 @@ class Connect(object):
         for pwm_data in pwm_data_set:
             if 'iid' in pwm_data:
                 if isinstance(pwm_data['iid'], int):
-                    if pwm_data['iid'] < 6 or pwm_data['iid'] > 7:
+                    if pwm_data['iid'] in [6, 7]:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -475,7 +475,7 @@ class Connect(object):
         for ik_data in ik_data_set:
             if 'kid' in ik_data:
                 if isinstance(ik_data['kid'], int):
-                    if ik_data['kid'] < 0 or ik_data['kid'] > 15:
+                    if not 0 <= ik_data['kid'] <= 15:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -483,7 +483,7 @@ class Connect(object):
                 if isinstance(ik_data['kdt'], dict):
                     if 'x' in ik_data['kdt']:
                         if isinstance(ik_data['kdt']['x'], int):
-                            if ik_data['kdt']['x'] < -180 or ik_data['kdt']['x'] > 180:
+                            if not -180 <= ik_data['kdt']['x'] <= 180:
                                 raise ConnectParameterError(sys._getframe().f_code.co_name)
                         else:
                             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -491,7 +491,7 @@ class Connect(object):
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
                     if 'y' in ik_data['kdt']:
                         if isinstance(ik_data['kdt']['y'], int):
-                            if ik_data['kdt']['y'] < -180 or ik_data['kdt']['y'] > 180:
+                            if not -180 <= ik_data['kdt']['y'] <= 180:
                                 raise ConnectParameterError(sys._getframe().f_code.co_name)
                         else:
                             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -499,7 +499,7 @@ class Connect(object):
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
                     if 'z' in ik_data['kdt']:
                         if isinstance(ik_data['kdt']['z'], int):
-                            if ik_data['kdt']['z'] < -180 or ik_data['kdt']['z'] > 180:
+                            if not -180 <= ik_data['kdt']['z'] <= 180:
                                 raise ConnectParameterError(sys._getframe().f_code.co_name)
                         else:
                             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -556,7 +556,7 @@ class Connect(object):
         for ik_data in ik_data_set:
             if 'kid' in ik_data:
                 if isinstance(ik_data['kid'], int):
-                    if ik_data['kid'] < 0 or ik_data['kid'] > 15:
+                    if not 0 <= ik_data['kid'] <= 15:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -610,12 +610,12 @@ class Connect(object):
             ConnectParameterError 引数の条件を間違っていた場合発生
         '''
         if isinstance(forward, int):
-            if forward < -100 or forward > 100:
+            if not -100 <= forward <= 100:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
         else:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
         if isinstance(turn_cw, int):
-            if turn_cw < -100 or turn_cw > 100:
+            if not -100 <= turn_cw <= 100:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
         else:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -666,7 +666,7 @@ class Connect(object):
 
     def _adjust_ln_sum(self, command_data):
         ''' データ中のLN(Length)とSUM(CheckSum)の調整 '''
-        ln_pos = 1 if command_data[0] == 0x0c or command_data[0] == 0x0d or command_data[0] == 0x53 or command_data[0] == 0x54 else 2
+        ln_pos = 1 if command_data[0] in [0x0c, 0x0d, 0x53, 0x54] else 2
         if len(command_data) > 3:
             command_data[ln_pos] = len(command_data);
             sum = 0;
