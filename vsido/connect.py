@@ -22,6 +22,7 @@ class Connect(object):
     _COMMAND_OP_IK = 0x6b; # 'k'
     _COMMAND_OP_WALK = 0x74; # 't'
     _COMMAND_OP_GPIO = 0x69; # 'i'
+    _COMMAND_OP_GPIO = 0x21; # '!'
 
     def __init__(self):
         '''
@@ -98,7 +99,7 @@ class Connect(object):
         try:
             self._serial = serial.serial_for_url(port, baudrate, timeout=1)
         except serial.SerialException:
-            sys.stderr.write("could not open port %r: %s\n" % (port, e))
+            sys.stderr.write('could not open port %r: %s\n' % (port, e))
             raise
         self._connected = True
         self._start_receiver()
@@ -142,7 +143,7 @@ class Connect(object):
             while self._receiver_alive:
                 data = self._serial.read(1)
                 if len(data) > 0:
-                    if data == b'\xff':
+                    if data == Connect._COMMAND_ST.to_bytes(1, byteorder='little'):
                         self._receive_buffer = []
                     self._receive_buffer.append(int.from_bytes(data, byteorder='big'))
                     if len(self._receive_buffer) > 3:
@@ -168,7 +169,7 @@ class Connect(object):
         Args:
             angle_data_set サーボの角度情報を書いた辞書データのリスト(範囲は-180.0～180.0度)
                 example:
-                [{"sid":1, "angle":20}, {"sid":2, "angle":-20}]
+                [{'sid':1, 'angle':20}, {'sid':2, 'angle':-20}]
             cycle_time 目標角度に移行するまでの時間(範囲は0～1000msec)
         Returns:
             なし
@@ -255,7 +256,7 @@ class Connect(object):
         if pwm_cycle < 4 or pwm_cycle > 16384:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
         pwm_cycle_data = round(pwm_cycle / 4)
-        # vdt = self._make_2byte_data # [Todo]:本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
+        # vdt = self._make_2byte_data # TODO(hine.gdw@gmail.com):本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
         vdt = [pwm_cycle_data // 256, pwm_cycle_data % 256]
         self.set_vid_value([{'vid':6, 'vdt':vdt[0]}, {'vid':7, 'vdt':vdt[1]}])
         self._pwm_cycle = pwm_cycle
@@ -271,7 +272,7 @@ class Connect(object):
         Args:
             vid_data_set VID設定情報を書いた辞書データのリスト
                 example:
-                [{"vid":6, "vdt":0x0e}, {"vid":7, "vdt":0xa6}]
+                [{'vid':6, 'vdt':0x0e}, {'vid':7, 'vdt':0xa6}]
         Returns:
             なし
         Raises:
@@ -350,11 +351,11 @@ class Connect(object):
         Args:
             vid_data_set VID設定情報を書いた辞書データのリスト
                 example:
-                [{"vid":6}, {"vid":7}]
+                [{'vid':6}, {'vid':7}]
         Returns:
             VID設定情報を書いた辞書データのリスト(引数vid_data_setにvdtを加えたもの)
                 example:
-                [{"vid":6, "vdt":0x0e}, {"vid":7, "vdt":0xa6}]
+                [{'vid':6, 'vdt':0x0e}, {'vid':7, 'vdt':0xa6}]
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
         '''
@@ -389,9 +390,9 @@ class Connect(object):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
         if not response_data[1] == Connect._COMMAND_OP_GET_VID_VALUE:
             raise ConnectParameterError(sys._getframe().f_code.co_name)
-        vid_num = len(response_data) - 4 # [Todo]:本来は4引くだけだが、ver.2.2現在バグで0x00が多くついてくる
+        vid_num = len(response_data) - 4 # TODO(hine.gdw@gmail.com):ver.2.2現在バグで0x00が多くついてくる(下で0x00を許容しているので、ここはこれでOK)
         if not len(vid_data_set) == vid_num:
-            if len(vid_data_set) == vid_num - 1: # [Todo]:仮に00がついていてもOKなロジックとする
+            if len(vid_data_set) == vid_num - 1: # TODO(hine.gdw@gmail.com):仮に00がついていてもOKなロジックとする
                 if response_data[3 + len(vid_data_set)] == 0x00:
                     vid_num -= 1
                 else:
@@ -730,5 +731,8 @@ if __name__ == '__main__':
 
     # テストで歩行コマンド
     vsidoconnect.walk(100, 0)
-    while True:
-        time.sleep(1)
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        vsidoconnect.disconnect()
