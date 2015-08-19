@@ -144,12 +144,12 @@ class Connect(object):
             while self._receiver_alive:
                 data = self._serial.read(1)
                 if len(data) > 0:
-                    if data == Connect._COMMAND_ST.to_bytes(1, byteorder='little'):
+                    if int.from_bytes(data, byteorder='big') == Connect._COMMAND_ST:
                         self._receive_buffer = []
                     self._receive_buffer.append(int.from_bytes(data, byteorder='big'))
                     if len(self._receive_buffer) > 3:
                         if len(self._receive_buffer) == self._receive_buffer[2]:
-                            if not self._receive_buffer[1] == 0x21:
+                            if not self._receive_buffer[1] == Connect._COMMAND_OP_ACK:
                                 # ackじゃなかった場合はレスポンス待ちのデータということで格納する
                                 self._response_waiting_buffer = self._receive_buffer
                             self._post_receive_process(self._receive_buffer)
