@@ -109,6 +109,26 @@ Returns:<br>
 Raises:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
 
+<dl><dt><a name="Connect-get_acceleration"><strong>get_acceleration</strong></a>(self, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「加速度センサー値要求」コマンドの送信<br>
+&nbsp;<br>
+V-Sido&nbsp;CONNECTに接続した加速度センサーの値を取得する。<br>
+VID設定で接続したセンサーを正しく設定していなければならない。<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;加速度センサー値の辞書データ(引数ik_data_setにkdtを付加したもの)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ax&nbsp;X軸方向の加速度(1~253)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ay&nbsp;Y軸方向の加速度(1~253)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;az&nbsp;Z軸方向の加速度(1~253)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'ax':&nbsp;125,&nbsp;'az':&nbsp;118,&nbsp;'ay':&nbsp;158}<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+
 <dl><dt><a name="Connect-get_ik"><strong>get_ik</strong></a>(self, ik_data_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IK取得」コマンドの送信<br>
 &nbsp;<br>
 IK(Inverse&nbsp;Kinematics:逆運動学)に基づいた手足の位置情報取得。<br>
@@ -207,6 +227,22 @@ Raises:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+
+<dl><dt><a name="Connect-set_feedback_id"><strong>set_feedback_id</strong></a>(self, sid_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「フィードバックID設定」コマンドの送信<br>
+&nbsp;<br>
+フィードバック情報を欲しいサーボモータのIDの設定を行う。<br>
+フィードバックIDを設定した後、フィードバック要求を行うこと。<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sid_data_set&nbsp;サーボの最大最小角度情報を書いた辞書データのリスト(範囲は-180.0～180.0度)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid&nbsp;サーボID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':1},&nbsp;{'sid':2}]<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_gpio_config"><strong>set_gpio_config</strong></a>(self, gpio_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IO設定」コマンドの送信<br>
 &nbsp;<br>

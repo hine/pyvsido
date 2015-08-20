@@ -20,6 +20,8 @@ class Connect(object):
     _COMMAND_OP_COMPLIANCE = 0x63 # 'c'
     _COMMAND_OP_MIN_MAX = 0x6d # 'm'
     _COMMAND_OP_SERVO_INFO = 0x64 # 'd'
+    _COMMAND_OP_FEEDBACK_ID = 0x66 # 'f'
+    _COMMAND_OP_GET_FEEDBACK = 0x72 # 'r'
     _COMMAND_OP_SET_VID_VALUE = 0x73 # 's'
     _COMMAND_OP_GET_VID_VALUE = 0x67 # 'g'
     _COMMAND_OP_WRITE_FLASH = 0x77 # 'w'
@@ -457,6 +459,46 @@ class Connect(object):
             servo_data_set[i]['data'] = servo_data
             data_pos += servo_data_set[i]['length']
         return servo_data_set
+
+    def set_feedback_id(self, sid_data_set):
+        '''
+        V-Sido CONNECTに「フィードバックID設定」コマンドの送信
+
+        フィードバック情報を欲しいサーボモータのIDの設定を行う。
+        フィードバックIDを設定した後、フィードバック要求を行うこと。
+
+        Args:
+            sid_data_set サーボの最大最小角度情報を書いた辞書データのリスト(範囲は-180.0～180.0度)
+                sid サーボID
+                example:
+                [{'sid':1}, {'sid':2}]
+        Returns:
+            なし
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
+        '''
+        if not isinstance(sid_data_set, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        for sid_data in sid_data_set:
+            if 'sid' in sid_data:
+                if isinstance(sid_data['sid'], int):
+                    if not 0 <= sid_data['sid'] <= 254:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+        self._send_data(self._make_set_feedback_id_command(sid_data_set))
+
+    def _make_set_feedback_id_command(self, sid_data_set):
+        ''' 「フィードバックID設定」コマンドのデータ生成 '''
+        data = []
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_FEEDBACK_ID) # OP
+        data.append(0x00) # LN仮置き
+        for sid_data in sid_data_set:
+            data.append(sid_data['sid']) # SID
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
 
     def set_vid_io_mode(self, gpio_data_set):
         '''
