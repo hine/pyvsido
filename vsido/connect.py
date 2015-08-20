@@ -18,6 +18,7 @@ class Connect(object):
     _COMMAND_ST = 0xff;
     _COMMAND_OP_ACK = 0x21 # '!'
     _COMMAND_OP_ANGLE = 0x6f # 'o'
+    _COMMAND_OP_SERVO_INFO = 0x64 # 'd'
     _COMMAND_OP_SET_VID_VALUE = 0x73 # 's'
     _COMMAND_OP_GET_VID_VALUE = 0x67 # 'g'
     _COMMAND_OP_WRITE_FLASH = 0x77 # 'w'
@@ -78,6 +79,10 @@ class Connect(object):
 
     def _post_receive(self, received_data):
         ''' 受信後処理のダミー '''
+        received_data_str = []
+        for data in received_data:
+            received_data_str.append('%02x' % data)
+        print('< ' + ' '.join(received_data_str))
         pass
 
     def _post_send(self, sent_data):
@@ -110,7 +115,11 @@ class Connect(object):
             raise
         self._connected = True
         self._start_receiver()
-        self._firmware_version = self.get_vid_version()
+        while self._firmware_version is None:
+            try:
+                self._firmware_version = self.get_vid_version()
+            except ConnectTimeoutError:
+                pass
 
     def disconnect(self):
         '''
@@ -168,8 +177,8 @@ class Connect(object):
         '''
         V-Sido CONNECTに「目標角度設定」コマンドの送信
 
-        各サーボモーターに目標角度情報を与える。
-        複数のサーボモーターへの情報をまとめて送ることができる。
+        各サーボモータに目標角度情報を与える。
+        複数のサーボモータへの情報をまとめて送ることができる。
         引数の角度範囲は-180度～180度だが、実際の可動域はロボットによる。
         目標角度に移行するまでの時間の引数はmsec単位で指定できるが、精度は10msec。
 
@@ -220,6 +229,140 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
+    def set_servo_min_max_angle(self, min_max_data_set):
+        '''
+        V-Sido CONNECTに「最大・最小角設定」コマンドの送信
+
+        各サーボモータの可動範囲の最大、最小角度を設定する。
+        複数のサーボモータへの情報をまとめて送ることができる。
+        引数の角度範囲は-180度～180度だが、実際の可動域はロボットによる。
+
+        Args:
+            min_max_data_set サーボの最大最小角度情報を書いた辞書データのリスト(範囲は-180.0～180.0度)
+                example:
+                [{'sid':1, 'min':-100, 'max':100}, {'sid':2, 'min':-150, 'max':50}]
+        Returns:
+            なし
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+        '''
+        if not isinstance(min_max_data_set, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        for min_max_data in min_max_data_set:
+            if 'sid' in min_max_data:
+                if isinstance(min_max_data['sid'], int):
+                    if not 0 <= min_max_data['sid'] <= 254:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            if 'min' in min_max_data:
+                if isinstance(min_max_data['min'], int) or isinstance(min_max_data['min'], float):
+                    if not -180.0 <= min_max_data['min'] <= 180.0:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            if 'max' in min_max_data:
+                if isinstance(min_max_data['max'], int) or isinstance(min_max_data['max'], float):
+                    if not -180.0 <= min_max_data['max'] <= 180.0:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            if min_max_data['max'] < min_max_data['min']:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+        self._send_data(self._make_set_servo_min_max_angle_command(min_max_data_set))
+
+    def _make_set_servo_min_max_angle_command(self, min_max_data_set):
+        ''' 「最大・最小角設定」コマンドのデータ生成 '''
+        data = []
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_ANGLE) # OP
+        data.append(0x00) # LN仮置き
+        for min_max_data in min_max_data_set:
+            data.append(min_max_data['sid']) # SID
+            angle_data = self._make_2byte_data(round(min_max_data['min'] * 10))
+            data.append(angle_data[0]) # MIN
+            data.append(angle_data[1]) # MIN
+            angle_data = self._make_2byte_data(round(min_max_data['max'] * 10))
+            data.append(angle_data[0]) # MAX
+            data.append(angle_data[1]) # MAX
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
+    def get_servo_info(self, servo_data_set, timeout=1):
+        '''
+        V-Sido CONNECTに「サーボ情報要求」コマンドを送信
+
+        サーボの現在情報を取得する。
+        複数のサーボへの要求をまとめて送ることができる。
+        取得するサーボ情報は、開始アドレスと取得したいデータ長を決める。
+
+        Args:
+            servo_data_set サーボ情報を書いた辞書データのリスト
+                example:
+                [{'sid':3, 'address':1, 'length':20}, {'sid':4, 'address':1, 'length':20]
+        Returns:
+            サーボ現在情報を書いた辞書データのリスト(引数servo_data_setにdataを加えたもの)
+                example:
+                [{'sid':3, 'address':1, 'length':2, 'data':[0x01, 0x02]}, {'sid':4, 'address':1, 'length':2, 'data':[0x01, 0x02]]
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+        '''
+        if not isinstance(servo_data_set, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        for servo_data in servo_data_set:
+            if 'sid' in servo_data:
+                if isinstance(servo_data['sid'], int):
+                    if not 0 <= servo_data['sid'] <= 254:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            if 'address' in servo_data:
+                if isinstance(servo_data['address'], int):
+                    if not 0 <= servo_data['address'] <= 53:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            if 'length' in servo_data:
+                if isinstance(servo_data['length'], int):
+                    if not 1 <= servo_data['length'] <= 54:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+        return self._parse_servo_info_response(servo_data_set, self._send_data_wait_response(self._make_get_servo_info_command(servo_data_set), timeout))
+
+    def _make_get_servo_info_command(self, servo_data_set):
+        ''' 「サーボ情報要求」コマンドのデータ生成 '''
+        data = []
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_SERVO_INFO) # OP
+        data.append(0x00) # LN仮置き
+        for servo_data in servo_data_set:
+            data.append(servo_data['sid']) # SID
+            data.append(servo_data['address']) # DAD
+            data.append(servo_data['length']) # DLN
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
+    def _parse_servo_info_response(self, servo_data_set, response_data):
+        ''' 「サーボ情報要求」のレスポンスデータのパース '''
+        if not isinstance(response_data, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        if len(response_data) < 6:
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+        if not response_data[1] == Connect._COMMAND_OP_SERVO_INFO:
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+        data_pos = 3;
+        for i in range(0, len(servo_data_set)):
+            if not response_data[data_pos] == servo_data_set[i]['sid']:
+                raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+            data_pos += 1
+            servo_data = []
+            for j in range(0, servo_data_set[i]['length']):
+                servo_data.append(response_data[data_pos + j])
+            servo_data_set[i]['data'] = servo_data
+            data_pos += servo_data_set[i]['length']
+        return servo_data_set
+
     def set_vid_io_mode(self, gpio_data_set):
         '''
         GPIOピン4～7番を入出力どちらで利用するかのVID設定の書き込み
@@ -227,7 +370,9 @@ class Connect(object):
         GPIOピンの4～7番を入出力に使うかの設定を行う。
 
         Args:
-
+            gpio_data_set GIPOの設定を書いた辞書データのリスト
+                example:
+                [{'iid':4, 'mode':0}, {'iid':5, 'mode':1}]
         Returns:
             なし
         Raises:
@@ -347,38 +492,38 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
-    def get_vid_version(self):
+    def get_vid_version(self, timeout=1):
         '''
         バージョン情報のVID設定の取得
 
         V-Sido CONNECTのバージョン情報をVID設定から読み取る。
 
         Args:
-            なし
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
         Returns:
             バージョンを示す数値
         Raises:
             なし
         '''
-        return self.get_vid_value([{'vid':254}])[0]['vdt']
+        return self.get_vid_value([{'vid':254}], timeout)[0]['vdt']
 
-    def get_vid_pwm_cycle(self):
+    def get_vid_pwm_cycle(self, timeout=1):
         '''
         PWM周期のVID設定の取得
 
         PWM周期の情報をVID設定から読み取る。
 
         Args:
-            なし
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
         Returns:
             PWM周期を示す数値(VID格納値の4倍)
         Raises:
             なし
         '''
-        pwd_data = self.get_vid_value([{'vid':6}, {'vid':7}])
+        pwd_data = self.get_vid_value([{'vid':6}, {'vid':7}], timeout)
         return (pwd_data[0]['vdt'] * 256 + pwd_data[1]['vdt']) * 4
 
-    def get_vid_value(self, vid_data_set):
+    def get_vid_value(self, vid_data_set, timeout=1):
         '''
         V-Sido CONNECTに「VID要求」コマンドを送信
 
@@ -390,6 +535,7 @@ class Connect(object):
             vid_data_set VID設定情報を書いた辞書データのリスト
                 example:
                 [{'vid':6}, {'vid':7}]
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
         Returns:
             VID設定情報を書いた辞書データのリスト(引数vid_data_setにvdtを加えたもの)
                 example:
@@ -407,7 +553,7 @@ class Connect(object):
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
-        return self._parse_vid_response(vid_data_set, self._send_data_wait_response(self._make_get_vid_value_command(vid_data_set)))
+        return self._parse_vid_response(vid_data_set, self._send_data_wait_response(self._make_get_vid_value_command(vid_data_set), timeout))
 
     def _make_get_vid_value_command(self, vid_data_set):
         ''' 「VID要求」コマンドのデータ生成 '''
@@ -559,7 +705,7 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
-    def check_connected_servo(self):
+    def check_connected_servo(self, timeout=1):
         '''
         V-Sido CONNECTに「接続確認要求」コマンドを送信
 
@@ -574,7 +720,7 @@ class Connect(object):
         Raises:
             なし
         '''
-        return self._parse_check_servo_response(self._send_data_wait_response(self._make_check_connected_servo_command()))
+        return self._parse_check_servo_response(self._send_data_wait_response(self._make_check_connected_servo_command(), timeout))
 
     def _make_check_connected_servo_command(self):
         ''' 「接続確認要求」コマンドのデータ生成 '''
@@ -602,7 +748,7 @@ class Connect(object):
             sid_data_set.append(sid_data)
         return sid_data_set
 
-    def set_ik(self, ik_data_set, feedback=False):
+    def set_ik(self, ik_data_set, feedback=False, timeout=0.5):
         '''
         V-Sido CONNECTに「IK設定」コマンドの送信
 
@@ -613,6 +759,8 @@ class Connect(object):
             ik_data_set IK設定情報を書いた辞書データのリスト
                 example:
                 [{'kid':2, 'kdt':{'x':0, 'y':0, 'z':100}}, {'kid':3, 'kdt':{'x':0, 'y':0, 'z':100}}]
+            feedback コマンド送信後、IK情報のリターンを求めるかのbool値(省略可、省略した場合フィードバックなし)
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
         Returns:
             現在のIK位置の辞書データのリスト(ただし、引数でfeedback=Trueの場合のみ)
                 example:
@@ -684,7 +832,7 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
-    def get_ik(self, ik_data_set):
+    def get_ik(self, ik_data_set, timeout=1):
         '''
         V-Sido CONNECTに「IK取得」コマンドの送信
 
@@ -694,7 +842,8 @@ class Connect(object):
             ik_data_set IK設定情報を書いた辞書データのリスト
                 example:
                 [{'kid':2}, {'kid':3}]
-        Returns:
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
+    Returns:
             現在のIK位置の辞書データのリスト(引数ik_data_setにkdtを付加したもの)
                 example:
                 [{'kid':2, 'kdt':{'x':0, 'y':0, 'z':100}}, {'kid':3, 'kdt':{'x':0, 'y':0, 'z':100}}]
@@ -710,7 +859,7 @@ class Connect(object):
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
-            return self._parse_ik_response(self._send_data_wait_response(self._make_get_ik_command(ik_data_set, feedback)))
+            return self._parse_ik_response(self._send_data_wait_response(self._make_get_ik_command(ik_data_set, feedback), timeout))
 
     def _make_get_ik_command(self, ik_data_set):
         ''' 「IK取得」コマンドのデータ生成 '''
