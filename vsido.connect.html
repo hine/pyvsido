@@ -154,6 +154,24 @@ Raises:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
 
+<dl><dt><a name="Connect-get_servo_feedback"><strong>get_servo_feedback</strong></a>(self, address, length, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「フィードバック要求」コマンドを送信<br>
+&nbsp;<br>
+フィードバックID設定で設定したサーボの現在情報を取得する。<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;address&nbsp;サーボ情報格納先先頭アドレス(範囲は0～53)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;length&nbsp;サーボ情報読み出しデータ長(範囲は1～54)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;サーボ現在情報を書いた辞書データのリスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':3,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]},&nbsp;{'sid':4,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]]<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+
 <dl><dt><a name="Connect-get_servo_info"><strong>get_servo_info</strong></a>(self, servo_data_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「サーボ情報要求」コマンドを送信<br>
 &nbsp;<br>
 サーボの現在情報を取得する。<br>

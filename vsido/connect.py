@@ -500,6 +500,70 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
+    def get_servo_feedback(self, address, length, timeout=1):
+        '''
+        V-Sido CONNECTに「フィードバック要求」コマンドを送信
+
+        フィードバックID設定で設定したサーボの現在情報を取得する。
+
+        Args:
+            address サーボ情報格納先先頭アドレス(範囲は0～53)
+            length サーボ情報読み出しデータ長(範囲は1～54)
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
+        Returns:
+            サーボ現在情報を書いた辞書データのリスト
+                example:
+                [{'sid':3, 'address':1, 'length':2, 'data':[0x01, 0x02]}, {'sid':4, 'address':1, 'length':2, 'data':[0x01, 0x02]]
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
+            ConnectTimeoutError レスポンスがタイムアウトした場合発生
+            ConnectInvalidResponseError レスポンスが期待する書式と違った場合発生
+        '''
+        if isinstance(address, int):
+            if not 0 <= address <= 53:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+        else:
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        if isinstance(length, int):
+            if not 1 <= length <= 54:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+        else:
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        return self._parse_servo_feedback_response(address, length, self._send_data_wait_response(self._make_get_servo_feedback_command(address, length), timeout))
+
+    def _make_get_servo_feedback_command(self, address, length):
+        ''' 「サーボ情報要求」コマンドのデータ生成 '''
+        data = []
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_GET_FEEDBACK) # OP
+        data.append(0x00) # LN仮置き
+        data.append(address) # DAD
+        data.append(length) # DLN
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
+    def _parse_servo_feedback_response(self, address, length, response_data):
+        ''' 「サーボ情報要求」のレスポンスデータのパース '''
+        if not isinstance(response_data, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        if len(response_data) < 6:
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+        if not response_data[1] == Connect._COMMAND_OP_GET_FEEDBACK:
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+        servo_num = (len(response_data) - 4) // (length + 1)
+        servo_data_set = []
+        for i in range(0, servo_num):
+            servo_data = {}
+            servo_data['sid'] = response_data[3 + i * length]
+            servo_data['address'] = address
+            servo_data['length'] = length
+            servo_data['data'] = []
+            for j in range(0, length):
+                servo_data['data'].append(response_data[4 + i * length + j])
+            servo_data_set.append(servo_data)
+        return servo_data_set
+
     def set_vid_io_mode(self, gpio_data_set):
         '''
         GPIOピン4～7番を入出力どちらで利用するかのVID設定の書き込み
