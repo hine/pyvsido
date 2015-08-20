@@ -16,7 +16,6 @@ class Connect(object):
     '''
 
     _COMMAND_ST = 0xff;
-    _COMMAND_OP_ACK = 0x21 # '!'
     _COMMAND_OP_ANGLE = 0x6f # 'o'
     _COMMAND_OP_COMPLIANCE = 0x63 # 'c'
     _COMMAND_OP_MIN_MAX = 0x6d # 'm'
@@ -29,6 +28,8 @@ class Connect(object):
     _COMMAND_OP_CHECK_SERVO = 0x6a # 'j'
     _COMMAND_OP_IK = 0x6b # 'k'
     _COMMAND_OP_WALK = 0x74 # 't'
+    _COMMAND_OP_ACCELERATION = 0x61 # 'a'
+    _COMMAND_OP_ACK = 0x21 # '!'
 
     def __init__(self, debug=False):
         '''
@@ -1003,7 +1004,7 @@ class Connect(object):
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
-            return self._parse_ik_response(self._send_data_wait_response(self._make_get_ik_command(ik_data_set, feedback), timeout))
+        return self._parse_ik_response(self._send_data_wait_response(self._make_get_ik_command(ik_data_set, feedback), timeout))
 
     def _make_get_ik_command(self, ik_data_set):
         ''' 「IK取得」コマンドのデータ生成 '''
@@ -1078,6 +1079,55 @@ class Connect(object):
         data.append(turn_cw + 100)
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
+
+    def get_acceleration(self, timeout=1):
+        '''
+        V-Sido CONNECTに「加速度センサー値要求」コマンドの送信
+
+        V-Sido CONNECTに接続した加速度センサーの値を取得する。
+        VID設定で接続したセンサーを正しく設定していなければならない。
+
+        Args:
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
+        Returns:
+            加速度センサー値の辞書データ(引数ik_data_setにkdtを付加したもの)
+                ax X軸方向の加速度(1~253)
+                ay Y軸方向の加速度(1~253)
+                az Z軸方向の加速度(1~253)
+                example:
+                {'ax': 125, 'az': 118, 'ay': 158}
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
+            ConnectTimeoutError レスポンスがタイムアウトした場合発生
+            ConnectInvalidResponseError レスポンスが期待する書式と違った場合発生
+        '''
+        if not (isinstance(timeout, int) or isinstance(timeout, float)):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        return self._parse_acceleration_response(self._send_data_wait_response(self._make_get_acceleration_command(), timeout))
+
+    def _make_get_acceleration_command(self):
+        ''' 「加速度センサ値要求」コマンドのデータ生成 '''
+        data = []
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_ACCELERATION) # OP
+        data.append(0x00) # LN仮置き
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
+    def _parse_acceleration_response(self, response_data):
+        ''' 「加速度センサ値要求」のレスポンスデータのパース '''
+        if not isinstance(response_data, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        if not len(response_data) == 7:
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+        if not response_data[1] == Connect._COMMAND_OP_ACCELERATION:
+            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+        acceleration_data = {}
+        acceleration_data['ax'] = response_data[3]
+        acceleration_data['ay'] = response_data[4]
+        acceleration_data['az'] = response_data[5]
+        return acceleration_data
 
     def _send_data(self, command_data):
         ''' V-Sido CONNECTにシリアル経由でデータ送信 '''
