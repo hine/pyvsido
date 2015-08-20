@@ -18,6 +18,8 @@ class Connect(object):
     _COMMAND_ST = 0xff;
     _COMMAND_OP_ACK = 0x21 # '!'
     _COMMAND_OP_ANGLE = 0x6f # 'o'
+    _COMMAND_OP_COMPLIANCE = 0x63 # 'c'
+    _COMMAND_OP_MIN_MAX = 0x6d # 'm'
     _COMMAND_OP_SERVO_INFO = 0x64 # 'd'
     _COMMAND_OP_SET_VID_VALUE = 0x73 # 's'
     _COMMAND_OP_GET_VID_VALUE = 0x67 # 'g'
@@ -28,9 +30,10 @@ class Connect(object):
     _COMMAND_OP_IK = 0x6b # 'k'
     _COMMAND_OP_WALK = 0x74 # 't'
 
-    def __init__(self):
+    def __init__(self, debug=False):
         '''
         '''
+        self._debug = debug
         self._connected = False
         self._receive_buffer = []
         self._response_waiting_buffer = []
@@ -78,20 +81,20 @@ class Connect(object):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
 
     def _post_receive(self, received_data):
-        ''' 受信後処理のダミー '''
-        received_data_str = []
-        for data in received_data:
-            received_data_str.append('%02x' % data)
-        print('< ' + ' '.join(received_data_str))
-        pass
+        ''' 受信後処理のダミー関数 '''
+        if self._debug:
+            received_data_str = []
+            for data in received_data:
+                received_data_str.append('%02x' % data)
+            print('[debug]< ' + ' '.join(received_data_str))
 
     def _post_send(self, sent_data):
-        ''' 送信後処理のダミー '''
-        sent_data_str = []
-        for data in sent_data:
-            sent_data_str.append('%02x' % data)
-        print('> ' + ' '.join(sent_data_str))
-        pass
+        ''' 送信後処理のダミー関数 '''
+        if self._debug:
+            sent_data_str = []
+            for data in sent_data:
+                sent_data_str.append('%02x' % data)
+            print('[debug]> ' + ' '.join(sent_data_str))
 
     def connect(self, port, baudrate=DEFAULT_BAUTRATE):
         '''
@@ -197,7 +200,7 @@ class Connect(object):
         for angle_data in angle_data_set:
             if 'sid' in angle_data:
                 if isinstance(angle_data['sid'], int):
-                    if not 0 <= angle_data['sid'] <= 254:
+                    if not 1 <= angle_data['sid'] <= 254:
                         raise ConnectParameterError(sys._getframe().f_code.co_name)
             else:
                 raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -226,6 +229,62 @@ class Connect(object):
             angle_data = self._make_2byte_data(round(angle_data['angle'] * 10))
             data.append(angle_data[0]) # ANGLE
             data.append(angle_data[1]) # ANGLE
+        data.append(0x00) # SUM仮置き
+        return self._adjust_ln_sum(data);
+
+    def set_servo_compliance(self, compliance_data_set):
+        '''
+        V-Sido CONNECTに「コンプライアンス設定」コマンドの送信
+
+        各サーボモータのコンプライアンスに関する設定を行う。
+        複数のサーボモータへの情報をまとめて送ることができる。
+        引数のコンプライアンススロープ値の範囲は1~254。
+
+        Args:
+            compliance_data_set サーボのコンプライアンス情報を書いた辞書データのリスト
+                sid サーボID
+                compliance_cw 時計回りのコンプライアンススロープ値(範囲は1～254)
+                compliance_ccw 反時計回りのコンプライアンススロープ値(範囲は1～254)
+                example:
+                [{'sid':1, 'compliance_cw':100, 'compliance_ccw':100}, {'sid':2, 'compliance_cw':100, 'compliance_ccw':50}]
+        Returns:
+            なし
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+        '''
+        if not isinstance(compliance_data_set, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        for compliance_data in compliance_data_set:
+            if 'sid' in compliance_data:
+                if isinstance(compliance_data['sid'], int):
+                    if not 1 <= compliance_data['sid'] <= 254:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            if 'compliance_cw' in compliance_data:
+                if isinstance(compliance_data['compliance_cw'], int):
+                    if not 1 <= compliance_data['compliance_cw'] <= 254:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+            if 'compliance_ccw' in compliance_data:
+                if isinstance(compliance_data['compliance_ccw'], int):
+                    if not 1 <= compliance_data['compliance_ccw'] <= 254:
+                        raise ConnectParameterError(sys._getframe().f_code.co_name)
+            else:
+                raise ConnectParameterError(sys._getframe().f_code.co_name)
+        self._send_data(self._make_set_servo_compliance_command(compliance_data_set))
+
+    def _make_set_servo_compliance_command(self, compliance_data_set):
+        ''' 「コンプライアンス設定」コマンドのデータ生成 '''
+        data = []
+        data.append(Connect._COMMAND_ST) # ST
+        data.append(Connect._COMMAND_OP_COMPLIANCE) # OP
+        data.append(0x00) # LN仮置き
+        for compliance_data in compliance_data_set:
+            data.append(compliance_data['sid']) # SID
+            data.append(compliance_data['compliance_cw']) # CP1
+            data.append(compliance_data['compliance_ccw']) # CP2
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
@@ -275,7 +334,7 @@ class Connect(object):
         ''' 「最大・最小角設定」コマンドのデータ生成 '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
-        data.append(Connect._COMMAND_OP_ANGLE) # OP
+        data.append(Connect._COMMAND_OP_MIN_MAX) # OP
         data.append(0x00) # LN仮置き
         for min_max_data in min_max_data_set:
             data.append(min_max_data['sid']) # SID
