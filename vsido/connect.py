@@ -252,7 +252,7 @@ class Connect(object):
         data.append(round(cycle_time / 10)) # CYC(引数はmsec単位で来るが、データは10msec単位で送る)
         for angle_data in angle_data_set:
             data.append(angle_data['sid']) # SID
-            angle_data = self._make_2byte_data(round(angle_data['angle'] * 10))
+            angle_data = self.make_2byte_data(round(angle_data['angle'] * 10))
             data.append(angle_data[0]) # ANGLE
             data.append(angle_data[1]) # ANGLE
         data.append(0x00) # SUM仮置き
@@ -369,10 +369,10 @@ class Connect(object):
         data.append(0x00) # LN仮置き
         for min_max_data in min_max_data_set:
             data.append(min_max_data['sid']) # SID
-            angle_data = self._make_2byte_data(round(min_max_data['min'] * 10))
+            angle_data = self.make_2byte_data(round(min_max_data['min'] * 10))
             data.append(angle_data[0]) # MIN
             data.append(angle_data[1]) # MIN
-            angle_data = self._make_2byte_data(round(min_max_data['max'] * 10))
+            angle_data = self.make_2byte_data(round(min_max_data['max'] * 10))
             data.append(angle_data[0]) # MAX
             data.append(angle_data[1]) # MAX
         data.append(0x00) # SUM仮置き
@@ -645,7 +645,7 @@ class Connect(object):
         if not 4 <= pwm_cycle <= 65536: # 16384 * 4まで
             raise ConnectParameterError(sys._getframe().f_code.co_name)
         pwm_cycle_data = round(pwm_cycle / 4)
-        # vdt = self._make_2byte_data # TODO(hine.gdw@gmail.com):本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
+        # vdt = self.make_2byte_data # TODO(hine.gdw@gmail.com):本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
         vdt = [pwm_cycle_data // 256, pwm_cycle_data % 256]
         self.set_vid_value([{'vid':6, 'vdt':vdt[0]}, {'vid':7, 'vdt':vdt[1]}])
         self._pwm_cycle = pwm_cycle
@@ -924,7 +924,7 @@ class Connect(object):
         data.append(0x00) # LN仮置き
         for pwm_data in pwm_data_set:
             data.append(pwm_data['iid']) # VID
-            pulse_data = self._make_2byte_data(round(pwm_data['pulse'] / 4))
+            pulse_data = self.make_2byte_data(round(pwm_data['pulse'] / 4))
             data.append(pulse_data[0]) # ANGLE
             data.append(pulse_data[1]) # ANGLE
         data.append(0x00) # SUM仮置き
@@ -1259,10 +1259,61 @@ class Connect(object):
                     raise ConnectTimeoutError(sys._getframe().f_code.co_name)
         return self._response_waiting_buffer
 
-    def _make_2byte_data(self, value):
-        ''' 2Byteデータの処理 (「V-Sido CONNECT RC Command Reference」参照) '''
-        value_bytes = value.to_bytes(2, byteorder='big', signed=True)
-        return [(value_bytes[1] << 1) & 0x00ff, (value_bytes[0] << 2) & 0x00ff]
+    def make_2byte_data(self, value):
+        '''
+        数値データから2Byteデータを作る
+
+        データ部に0xffが入ることを防ぐために2Byteのデータを0xffを含まない形に変形する
+         (「V-Sido CONNECT RC Command Reference」参照)
+
+        Args:
+            value 加工したい数値
+        Returns:
+            加工済み2Byteのデータのリスト
+                example:
+                [0x0e, 0xa6]
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+        '''
+        if not isinstance(value, int):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        value_bytes = value.to_bytes(2, byteorder='little', signed=True)
+        # 上位バイトを左に1ビットシフト
+        value_high_tmp = (value_bytes[1] << 1) & 0x00ff
+        # 再び数値に戻し、全体を左に1ビットシフトする
+        value_tmp = (int.from_bytes([value_bytes[0], value_high_tmp], byteorder='little', signed=True) << 1)
+        value_tmp_bytes = value_tmp.to_bytes(2, byteorder='little', signed=True)
+        return [value_tmp_bytes[0], value_tmp_bytes[1]]
+
+    def parse_2byte_data(self, data):
+        '''
+        V-Sido CONNECTからの2Byteデータを数値に戻す
+
+        データ部に0xffが入ることを防ぐために2Byteのデータは0xffを含まない形に変形されているので、
+        それを元の数値に戻す
+         (「V-Sido CONNECT RC Command Reference」参照)
+
+        Args:
+            data 加工したい2Byteのデータのリスト
+                example:
+                [0x0e, 0xa6]
+        Returns:
+            加工して元に戻した数値
+        Raises:
+            ConnectParameterError 引数の条件を間違っていた場合発生
+        '''
+        if not isinstance(data, list):
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        if not len(data) == 2:
+            raise ConnectParameterError(sys._getframe().f_code.co_name)
+        # データを数値に戻し、全体を右に1ビットシフトする
+        value_tmp = int.from_bytes(data, byteorder='little', signed=True) >> 1
+        # 再度、上位Byteと下位Byteに分解する
+        value_tmp_bytes = value_tmp.to_bytes(2, byteorder='big', signed=True)
+        # 上位バイトだけ右に1ビットシフトする
+        value_high = (value_tmp_bytes[0] & 0x80) | (value_tmp_bytes[0] >> 1)
+        value_low = value_tmp_bytes[1]
+        return int.from_bytes([value_high, value_low], byteorder='big', signed=True)
 
     def _adjust_ln_sum(self, command_data):
         ''' データ中のLN(Length)とSUM(CheckSum)の調整 '''
