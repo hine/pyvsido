@@ -32,15 +32,35 @@ class Connect(object):
 
     def __init__(self, debug=False):
         '''
+        初期化処理
+
+        インスタンス生成に伴う処理
+
+        Args:
+            debug デバグフラグ(省略可、省略した場合はデバッグモードはOFF)
+        Returns:
+            なし
+        Raises:
+            なし
         '''
+        # デバグモード設定
         self._debug = debug
-        self._connected = False
+
+        # 受信用のバッファ用意
         self._receive_buffer = []
         self._response_waiting_buffer = []
-        self._firmware_version = None
-        self._pwm_cycle = None
+
+        # 送受信後に呼び出される関数の初期設定
         self._post_receive_process = self._post_receive
         self._post_send_process = self._post_send
+
+        self._reset_values()
+
+    def _reset_values(self):
+        ''' V-Sido CONNECT接続後に取得データのクリア '''
+        self._connected = False
+        self._firmware_version = None
+        self._pwm_cycle = None
 
     def set_post_receive_process(self, post_receive_process):
         '''
@@ -120,7 +140,7 @@ class Connect(object):
         self._start_receiver()
         while self._firmware_version is None:
             try:
-                self._firmware_version = self.get_vid_version()
+                self._firmware_version = self.get_vid_version(timeout=5)
             except ConnectTimeoutError:
                 pass
 
@@ -142,7 +162,7 @@ class Connect(object):
             raise ConnectNotConnectedError(sys._getframe().f_code.co_name)
         self._stop_receiver()
         self._serial.close()
-        self._connected = False
+        self._reset_values()
 
     def _start_receiver(self):
         ''' 受信スレッドの立ち上げ '''
@@ -186,7 +206,9 @@ class Connect(object):
         目標角度に移行するまでの時間の引数はmsec単位で指定できるが、精度は10msec。
 
         Args:
-            angle_data_set サーボの角度情報を書いた辞書データのリスト(範囲は-180.0～180.0度)
+            angle_data_set サーボの角度情報を書いた辞書データのリスト
+                sid サーボID
+                angle 角度(範囲は-180.0～180.0度、精度は0.1度)
                 example:
                 [{'sid':1, 'angle':20}, {'sid':2, 'angle':-20}]
             cycle_time 目標角度に移行するまでの時間(範囲は0～1000msec)
@@ -194,6 +216,7 @@ class Connect(object):
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if not isinstance(angle_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -251,6 +274,7 @@ class Connect(object):
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if not isinstance(compliance_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -298,12 +322,16 @@ class Connect(object):
 
         Args:
             min_max_data_set サーボの最大最小角度情報を書いた辞書データのリスト(範囲は-180.0～180.0度)
+                sid サーボID
+                min 最小角度(範囲は-180.0～180.0度、精度は0.1度)
+                max 最大角度(範囲は-180.0～180.0度、精度は0.1度)
                 example:
                 [{'sid':1, 'min':-100, 'max':100}, {'sid':2, 'min':-150, 'max':50}]
         Returns:
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if not isinstance(min_max_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -357,14 +385,21 @@ class Connect(object):
 
         Args:
             servo_data_set サーボ情報を書いた辞書データのリスト
+                sid サーボID
+                address サーボ情報格納先先頭アドレス
+                length サーボ情報読み出しデータ長
                 example:
                 [{'sid':3, 'address':1, 'length':20}, {'sid':4, 'address':1, 'length':20]
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
         Returns:
             サーボ現在情報を書いた辞書データのリスト(引数servo_data_setにdataを加えたもの)
                 example:
                 [{'sid':3, 'address':1, 'length':2, 'data':[0x01, 0x02]}, {'sid':4, 'address':1, 'length':2, 'data':[0x01, 0x02]]
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
+            ConnectTimeoutError レスポンスがタイムアウトした場合発生
+            ConnectInvalidResponseError レスポンスが期待する書式と違った場合発生
         '''
         if not isinstance(servo_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -430,12 +465,15 @@ class Connect(object):
 
         Args:
             gpio_data_set GIPOの設定を書いた辞書データのリスト
+                iid GPIOのピン番号(範囲は4～7)
+                mode 0が入力、1が出力
                 example:
                 [{'iid':4, 'mode':0}, {'iid':5, 'mode':1}]
         Returns:
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if not isinstance(gpio_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -469,6 +507,7 @@ class Connect(object):
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if not isinstance(use, bool):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -492,6 +531,7 @@ class Connect(object):
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if not isinstance(pwm_cycle, int):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -513,12 +553,15 @@ class Connect(object):
 
         Args:
             vid_data_set VID設定情報を書いた辞書データのリスト
+                vid 設定値ID
+                vdt 設定値
                 example:
                 [{'vid':6, 'vdt':0x0e}, {'vid':7, 'vdt':0xa6}]
         Returns:
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if not isinstance(vid_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -562,7 +605,9 @@ class Connect(object):
         Returns:
             バージョンを示す数値
         Raises:
-            なし
+            ConnectNotConnectedError 接続していなかった場合発生
+            ConnectTimeoutError レスポンスがタイムアウトした場合発生
+            ConnectInvalidResponseError レスポンスが期待する書式と違った場合発生
         '''
         return self.get_vid_value([{'vid':254}], timeout)[0]['vdt']
 
@@ -577,7 +622,9 @@ class Connect(object):
         Returns:
             PWM周期を示す数値(VID格納値の4倍)
         Raises:
-            なし
+            ConnectNotConnectedError 接続していなかった場合発生
+            ConnectTimeoutError レスポンスがタイムアウトした場合発生
+            ConnectInvalidResponseError レスポンスが期待する書式と違った場合発生
         '''
         pwd_data = self.get_vid_value([{'vid':6}, {'vid':7}], timeout)
         return (pwd_data[0]['vdt'] * 256 + pwd_data[1]['vdt']) * 4
@@ -593,14 +640,20 @@ class Connect(object):
         Args:
             vid_data_set VID設定情報を書いた辞書データのリスト
                 example:
+                vid 設定値ID
                 [{'vid':6}, {'vid':7}]
             timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
         Returns:
             VID設定情報を書いた辞書データのリスト(引数vid_data_setにvdtを加えたもの)
+                vid 設定値ID
+                vdt 設定値
                 example:
                 [{'vid':6, 'vdt':0x0e}, {'vid':7, 'vdt':0xa6}]
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
+            ConnectTimeoutError レスポンスがタイムアウトした場合発生
+            ConnectInvalidResponseError レスポンスが期待する書式と違った場合発生
         '''
         if not isinstance(vid_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -655,7 +708,7 @@ class Connect(object):
         Returns:
             なし
         Raises:
-            なし
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         self._send_data(self._make_write_flash_command())
 
@@ -678,12 +731,15 @@ class Connect(object):
 
         Args:
             gpio_data_set 出力情報を書いた辞書データのリスト
+                iid GPIOピン番号(範囲は4～7)
+                value 0がLOW、1がHIGH
                 example:
                 [{'iid':4, 'value':1}, {'iid':5, 'value':0}]
         Returns:
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if not isinstance(gpio_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -725,11 +781,14 @@ class Connect(object):
         Args:
             pwm_data_set パルス幅情報を書いた辞書データのリスト
                 example:
+                iid GPIOピン番号(範囲は6～7)
+                pulse パルス幅(範囲は0～65536で4usec単位)
                 [{'iid':6, 'pulse':15000}, {'iid':7, 'pulse':7500}]
         Returns:
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if not isinstance(pwm_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -771,13 +830,17 @@ class Connect(object):
         サーボモータの接続確認を行う。
 
         Args:
-            なし
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
         Returns:
-            VID設定情報を書いた辞書データのリスト(引数vid_data_setにvdtを加えたもの)
+            サーボ接続情報を書いた辞書データのリスト
+                sid サーボID
+                time 関節角度受信までの時間(usec)
                 example:
-                [{'vid':6, 'vdt':0x0e}, {'vid':7, 'vdt':0xa6}]
+                [{'sid':6, 'time':48}, {'sid':7, 'time':50}]
         Raises:
-            なし
+            ConnectNotConnectedError 接続していなかった場合発生
+            ConnectTimeoutError レスポンスがタイムアウトした場合発生
+            ConnectInvalidResponseError レスポンスが期待する書式と違った場合発生
         '''
         return self._parse_check_servo_response(self._send_data_wait_response(self._make_check_connected_servo_command(), timeout))
 
@@ -816,16 +879,29 @@ class Connect(object):
 
         Args:
             ik_data_set IK設定情報を書いた辞書データのリスト
+                kid IK部位の番号
+                kdt IK用設定データ
+                    x x座標に関するデータ
+                    y y座標に関するデータ
+                    z z座標に関するデータ
                 example:
                 [{'kid':2, 'kdt':{'x':0, 'y':0, 'z':100}}, {'kid':3, 'kdt':{'x':0, 'y':0, 'z':100}}]
             feedback コマンド送信後、IK情報のリターンを求めるかのbool値(省略可、省略した場合フィードバックなし)
-            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
+            timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は0.5秒)
         Returns:
             現在のIK位置の辞書データのリスト(ただし、引数でfeedback=Trueの場合のみ)
+                kid IK部位の番号
+                kdt IK用設定データ
+                    x x座標に関するデータ
+                    y y座標に関するデータ
+                    z z座標に関するデータ
                 example:
                 [{'kid':2, 'kdt':{'x':0, 'y':0, 'z':100}}, {'kid':3, 'kdt':{'x':0, 'y':0, 'z':100}}]
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
+            ConnectTimeoutError レスポンスがタイムアウトした場合発生
+            ConnectInvalidResponseError レスポンスが期待する書式と違った場合発生
         '''
         if not isinstance(ik_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -899,15 +975,24 @@ class Connect(object):
 
         Args:
             ik_data_set IK設定情報を書いた辞書データのリスト
+                kid IK部位の番号
                 example:
                 [{'kid':2}, {'kid':3}]
             timeout 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
-    Returns:
+        Returns:
             現在のIK位置の辞書データのリスト(引数ik_data_setにkdtを付加したもの)
+                kid IK部位の番号
+                kdt IK用設定データ
+                    x x座標に関するデータ
+                    y y座標に関するデータ
+                    z z座標に関するデータ
                 example:
                 [{'kid':2, 'kdt':{'x':0, 'y':0, 'z':100}}, {'kid':3, 'kdt':{'x':0, 'y':0, 'z':100}}]
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
+            ConnectTimeoutError レスポンスがタイムアウトした場合発生
+            ConnectInvalidResponseError レスポンスが期待する書式と違った場合発生
         '''
         if not isinstance(ik_data_set, list):
             raise ConnectParameterError(sys._getframe().f_code.co_name)
@@ -966,6 +1051,7 @@ class Connect(object):
             なし
         Raises:
             ConnectParameterError 引数の条件を間違っていた場合発生
+            ConnectNotConnectedError 接続していなかった場合発生
         '''
         if isinstance(forward, int):
             if not -100 <= forward <= 100:
