@@ -1,6 +1,11 @@
 # coding:utf-8
 '''
 Python3用V-Sido Connectライブラリ
+
+Copyright (c) 2015 Daisuke IMAI
+
+This software is released under the MIT License.
+http://opensource.org/licenses/mit-license.php
 '''
 import sys
 import time
