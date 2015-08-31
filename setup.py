@@ -1,13 +1,13 @@
 from distutils.core import setup
 setup(
-    name = 'vsido',
+    name = 'pyvsido',
     packages = ['vsido'],
-    version = '0.0.9',
-    description = 'V-Sido Python Library',
+    version = '0.1.0',
+    description = 'V-Sido CONNECT Livrary for Python3',
     author = 'Daisuke IMAI',
     author_email = 'hine.gdw@gmail.com',
-    url = 'https://github.com/hine/PythonVSido_Library',
-    download_url = 'https://github.com/hine/PythonVSido_Library/archive/master.zip',
+    url = 'https://github.com/hine/pyvsido',
+    download_url = 'https://github.com/hine/pyvsido/archive/master.zip',
     keywords = ['robot', 'robotics', 'V-Sido', 'serial'],
     install_requires=[
         'pyserial==2.7',

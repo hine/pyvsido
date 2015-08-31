@@ -11,6 +11,7 @@ import sys
 import time
 import threading
 import types
+
 import serial
 
 DEFAULT_BAUTRATE = 115200
@@ -19,7 +20,6 @@ class Connect(object):
     '''
     V-Sido CONNECTのためのクラス
     '''
-
     _COMMAND_ST = 0xff;
     _COMMAND_OP_ANGLE = 0x6f # 'o'
     _COMMAND_OP_COMPLIANCE = 0x63 # 'c'
@@ -45,13 +45,13 @@ class Connect(object):
         インスタンス生成に伴う処理
 
         Args:
-            debug デバグフラグ(省略可、省略した場合はデバッグモードはOFF)
-        Returns:
-            なし
+            debug(Optional[bool]): debag(送受信の履歴表示)モードはTrue、そうでない時はFalseを指定
         Raises:
             なし
         '''
         # デバグモード設定
+        if not isinstance(debug, bool):
+            raise ValueError('debug must be bool.')
         self._debug = debug
 
         # 受信用のバッファ用意
