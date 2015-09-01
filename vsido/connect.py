@@ -17,8 +17,7 @@ import serial
 DEFAULT_BAUTRATE = 115200
 
 class Connect(object):
-    '''
-    V-Sido CONNECTのためのクラス
+    ''' V-Sido CONNECTのためのクラス
     '''
     _COMMAND_ST = 0xff;
     _COMMAND_OP_ANGLE = 0x6f # 'o'
@@ -39,19 +38,19 @@ class Connect(object):
     _COMMAND_OP_ACK = 0x21 # '!'
 
     def __init__(self, debug=False):
-        '''
-        初期化処理
+        '''初期化処理
 
         インスタンス生成に伴う処理
 
         Args:
             debug(Optional[bool]): debag(送受信の履歴表示)モードはTrue、そうでない時はFalseを指定
+
         Raises:
-            なし
+            ValueError: argument 'debug' must be bool
         '''
         # デバグモード設定
         if not isinstance(debug, bool):
-            raise ValueError('debug must be bool.')
+            raise ValueError('debug must be bool')
         self._debug = debug
 
         # 受信用のバッファ用意
@@ -62,51 +61,48 @@ class Connect(object):
         self._post_receive_process = self._post_receive
         self._post_send_process = self._post_send
 
+        # 接続状態などの保持値をクリア
         self._reset_values()
 
     def _reset_values(self):
-        ''' V-Sido CONNECT接続後に取得データのクリア '''
+        ''' V-Sido CONNECT接続後に取得すべきデータのクリア '''
         self._connected = False
         self._firmware_version = None
         self._pwm_cycle = None
 
     def set_post_receive_process(self, post_receive_process):
-        '''
-        レスポンス一式受信後の処理を定義
+        '''レスポンス一式受信後の処理を定義
 
         シリアル通信でレスポンス一式を受け取った後に個別の処理を追加したい場合、この関数を利用し定義する。
         定義する関数は、引数としてレスポンスのリストを取れるようにしてなければならない。
 
         Args:
-            post_receive_process 受信後実行する関数
-        Returns:
-            なし
+            post_receive_process(function): 受信後実行する関数
+
         Raises:
-            ConnectParameterError 引数に変数以外が渡された場合発生
+            ValueError: post_receive_process must be function or method
         '''
         if isinstance(post_receive_process, types.FunctionType):
             self._post_receive_process = post_receive_process
         else:
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
+            raise ValueError('post_receive_process must be function or method')
 
     def set_post_send_process(self, post_send_process):
-        '''
-        コマンド一式送信後の処理を定義
+        '''コマンド一式送信後の処理を定義
 
         シリアル通信でコマンド一式を送った後に個別の処理を追加したい場合、この関数を利用し定義する。
         定義する関数は、引数としてレスポンスのリストを取れるようにしてなければならない。
 
         Args:
-            post_send_process 送信後実行する関数
-        Returns:
-            なし
+            post_send_process(function): 送信後実行する関数
+
         Raises:
-            ConnectParameterError 引数に変数以外が渡された場合発生
+            ValueError: post_send_process must be function or method
         '''
         if isinstance(post_send_process, types.FunctionType):
             self._post_send_process = post_send_process
         else:
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
+            raise ValueError('post_send_process must be function or method')
 
     def _post_receive(self, received_data):
         ''' 受信後処理のダミー関数 '''
@@ -125,19 +121,18 @@ class Connect(object):
             print('[debug]> ' + ' '.join(sent_data_str))
 
     def connect(self, port, baudrate=DEFAULT_BAUTRATE):
-        '''
-        V-Sido CONNECTにシリアルポート経由で接続
+        '''V-Sido CONNECTにシリアルポート経由で接続
 
         シリアルポートを通じてV-Sido CONNECTに接続する。
         色々なコマンドを投げる前にまず実行しなければならない。
 
         Args:
-            port シリアルポート文字列(Example: 'COM3' '/dev/tty.usbserial' )
-            baudrate 通信速度(省略可)
-        Returns:
-            なし
+            port(str): シリアルポート文字列
+                Example: 'COM3', '/dev/tty.usbserial'
+            baudrate(Optional[int]): 通信速度
+
         Raises:
-            serial.SerialException シリアルポートがオープンできなかった場合発生
+            serial.SerialException: シリアルポートがオープンできなかった場合発生
         '''
         try:
             self._serial = serial.serial_for_url(port, baudrate, timeout=1)
@@ -153,24 +148,25 @@ class Connect(object):
                 pass
 
     def disconnect(self):
-        '''
-        V-Sido CONNECTからの切断
+        '''V-Sido CONNECTからの切断
 
         V-Sido CONNECTと接続しているシリアルポートを明示的に閉じ切断する。
         シリアルポートは通常はプログラムが終了した時に自動的に閉じる。
-
-        Args:
-            なし
-        Returns:
-            なし
-        Raises:
-            ConnectNotConnectedError 接続していなかった場合発生
         '''
-        if not self._connected:
-            raise ConnectNotConnectedError(sys._getframe().f_code.co_name)
-        self._stop_receiver()
-        self._serial.close()
-        self._reset_values()
+        if self._connected:
+            self._stop_receiver()
+            self._serial.close()
+            self._reset_values()
+
+    def is_connected(self):
+        '''V-Sidoとの接続確認
+
+        V-Sido CONNECTと接続状態にあるかどうかの確認
+
+        Returns:
+            bool: 接続している時はTrue、接続していない時はFalseを返す
+        '''
+        return self._connected
 
     def _start_receiver(self):
         ''' 受信スレッドの立ち上げ '''
