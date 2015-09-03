@@ -8,8 +8,13 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="vsido.html"><font color="#ffffff">vsido</font></a>.connect</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cdaisimai%5Cdocuments%5Cdevelopment%5Cpythonvsido_library%5Cvsido%5Cconnect.py">c:\users\daisimai\documents\development\pythonvsido_library\vsido\connect.py</a></font></td></tr></table>
-    <p><tt>Python3用V-Sido&nbsp;Connectライブラリ</tt></p>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cdaisimai%5Cdocuments%5Cdevelopment%5Cpyvsido%5Cvsido%5Cconnect.py">c:\users\daisimai\documents\development\pyvsido\vsido\connect.py</a></font></td></tr></table>
+    <p><tt>Python3用V-Sido&nbsp;Connectライブラリ<br>
+&nbsp;<br>
+Copyright&nbsp;(c)&nbsp;2015&nbsp;Daisuke&nbsp;IMAI<br>
+&nbsp;<br>
+This&nbsp;software&nbsp;is&nbsp;released&nbsp;under&nbsp;the&nbsp;MIT&nbsp;License.<br>
+<a href="http://opensource.org/licenses/mit-license.php">http://opensource.org/licenses/mit-license.php</a></tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#aa55cc">
@@ -30,15 +35,6 @@
     
 <tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><dl>
-<dt><font face="helvetica, arial"><a href="builtins.html#Exception">builtins.Exception</a>(<a href="builtins.html#BaseException">builtins.BaseException</a>)
-</font></dt><dd>
-<dl>
-<dt><font face="helvetica, arial"><a href="vsido.connect.html#ConnectInvalidResponseError">ConnectInvalidResponseError</a>
-</font></dt><dt><font face="helvetica, arial"><a href="vsido.connect.html#ConnectNotConnectedError">ConnectNotConnectedError</a>
-</font></dt><dt><font face="helvetica, arial"><a href="vsido.connect.html#ConnectParameterError">ConnectParameterError</a>
-</font></dt><dt><font face="helvetica, arial"><a href="vsido.connect.html#ConnectTimeoutError">ConnectTimeoutError</a>
-</font></dt></dl>
-</dd>
 <dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
 </font></dt><dd>
 <dl>
@@ -56,33 +52,32 @@
 <td colspan=2><tt>V-Sido&nbsp;CONNECTのためのクラス<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="Connect-__init__"><strong>__init__</strong></a>(self, debug=False)</dt><dd><tt>初期化処理<br>
+<dl><dt><a name="Connect-__init__"><strong>__init__</strong></a>(self, post_receive_handler=None, post_send_handler=None, debug=False)</dt><dd><tt>初期化処理<br>
 &nbsp;<br>
 インスタンス生成に伴う処理<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;debug&nbsp;デバグフラグ(省略可、省略した場合はデバッグモードはOFF)<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;&nbsp;&nbsp;&nbsp;post_receive_handler(function/method):&nbsp;受信後実行する関数<br>
+&nbsp;&nbsp;&nbsp;&nbsp;post_send_handler(function/method):&nbsp;送信後実行する関数<br>
+&nbsp;&nbsp;&nbsp;&nbsp;debug(Optional[bool]):&nbsp;debag(送受信の履歴表示)モードはTrue、そうでない時はFalseを指定<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
 <dl><dt><a name="Connect-check_connected_servo"><strong>check_connected_servo</strong></a>(self, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「接続確認要求」コマンドを送信<br>
 &nbsp;<br>
 サーボモータの接続確認を行う。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout(int):&nbsp;受信タイムアウトするまでの秒数(省略した場合は1秒)<br>
+&nbsp;<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;サーボ接続情報を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid&nbsp;サーボID<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time&nbsp;関節角度受信までの時間(usec)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tuple:&nbsp;サーボ接続情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid(int):&nbsp;サーボID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time(int)&nbsp;関節角度受信までの時間(usec)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':6,&nbsp;'time':48},&nbsp;{'sid':7,&nbsp;'time':50}]<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;({'sid':6,&nbsp;'time':48},&nbsp;{'sid':7,&nbsp;'time':50})<br>
+Raises:</tt></dd></dl>
 
 <dl><dt><a name="Connect-connect"><strong>connect</strong></a>(self, port, baudrate=115200)</dt><dd><tt>V-Sido&nbsp;CONNECTにシリアルポート経由で接続<br>
 &nbsp;<br>
@@ -90,24 +85,17 @@ Raises:<br>
 色々なコマンドを投げる前にまず実行しなければならない。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;port&nbsp;シリアルポート文字列(Example:&nbsp;'COM3'&nbsp;'/dev/tty.usbserial'&nbsp;)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;baudrate&nbsp;通信速度(省略可)<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;&nbsp;&nbsp;&nbsp;port(str):&nbsp;シリアルポート文字列<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Example:&nbsp;'COM3',&nbsp;'/dev/tty.usbserial'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;baudrate(Optional[int]):&nbsp;通信速度<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;serial.SerialException&nbsp;シリアルポートがオープンできなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;serial.SerialException:&nbsp;シリアルポートがオープンできなかった場合発生</tt></dd></dl>
 
 <dl><dt><a name="Connect-disconnect"><strong>disconnect</strong></a>(self)</dt><dd><tt>V-Sido&nbsp;CONNECTからの切断<br>
 &nbsp;<br>
 V-Sido&nbsp;CONNECTと接続しているシリアルポートを明示的に閉じ切断する。<br>
-シリアルポートは通常はプログラムが終了した時に自動的に閉じる。<br>
-&nbsp;<br>
-Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+シリアルポートは通常はプログラムが終了した時に自動的に閉じる。</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_acceleration"><strong>get_acceleration</strong></a>(self, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「加速度センサー値要求」コマンドの送信<br>
 &nbsp;<br>
@@ -115,136 +103,118 @@ V-Sido&nbsp;CONNECTに接続した加速度センサーの値を取得する。<
 VID設定で接続したセンサーを正しく設定していなければならない。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;加速度センサー値の辞書データ(引数ik_data_setにkdtを付加したもの)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ax&nbsp;X軸方向の加速度(1~253)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ay&nbsp;Y軸方向の加速度(1~253)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;az&nbsp;Z軸方向の加速度(1~253)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;dict:&nbsp;加速度センサー値の辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ax(int):&nbsp;X軸方向の加速度(1～253)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ay(int):&nbsp;Y軸方向の加速度(1～253)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;az(int):&nbsp;Z軸方向の加速度(1～253)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'ax':&nbsp;125,&nbsp;'az':&nbsp;118,&nbsp;'ay':&nbsp;158}<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+Raises:</tt></dd></dl>
 
-<dl><dt><a name="Connect-get_ik"><strong>get_ik</strong></a>(self, ik_data_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IK取得」コマンドの送信<br>
+<dl><dt><a name="Connect-get_ik"><strong>get_ik</strong></a>(self, *kid_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IK取得」コマンドの送信<br>
 &nbsp;<br>
 IK(Inverse&nbsp;Kinematics:逆運動学)に基づいた手足の位置情報取得。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ik_data_set&nbsp;IK設定情報を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kid&nbsp;IK部位の番号<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'kid':2},&nbsp;{'kid':3}]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*ik_set(int):&nbsp;IK設定情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略した場合は1秒)<br>
+&nbsp;<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;現在のIK位置の辞書データのリスト(引数ik_data_setにkdtを付加したもの)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kid&nbsp;IK部位の番号<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kdt&nbsp;IK用設定データ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;x座標に関するデータ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y&nbsp;y座標に関するデータ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;z&nbsp;z座標に関するデータ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tuple:&nbsp;現在のIK位置の辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kid(int):&nbsp;IK部位の番号<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kdt(dict):&nbsp;IK用設定データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x(int):&nbsp;x座標に関するデータ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y(int):&nbsp;y座標に関するデータ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;z(int):&nbsp;z座標に関するデータ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'kid':2,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}},&nbsp;{'kid':3,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}}]<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;({'kid':2,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}},&nbsp;{'kid':3,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}})<br>
+Raises:</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_servo_feedback"><strong>get_servo_feedback</strong></a>(self, address, length, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「フィードバック要求」コマンドを送信<br>
 &nbsp;<br>
 フィードバックID設定で設定したサーボの現在情報を取得する。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;address&nbsp;サーボ情報格納先先頭アドレス(範囲は0～53)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;length&nbsp;サーボ情報読み出しデータ長(範囲は1～54)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;address(int):&nbsp;サーボ情報格納先先頭アドレス(範囲は0～53)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;length(int):&nbsp;サーボ情報読み出しデータ長(範囲は1～54)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略した場合は1秒)<br>
+&nbsp;<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;サーボ現在情報を書いた辞書データのリスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tuple:&nbsp;サーボ現在情報を書いた辞書データ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':3,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]},&nbsp;{'sid':4,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;({'sid':3,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]},&nbsp;{'sid':4,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]])<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
-<dl><dt><a name="Connect-get_servo_info"><strong>get_servo_info</strong></a>(self, servo_data_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「サーボ情報要求」コマンドを送信<br>
+<dl><dt><a name="Connect-get_servo_info"><strong>get_servo_info</strong></a>(self, *servo_data_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「サーボ情報要求」コマンドを送信<br>
 &nbsp;<br>
 サーボの現在情報を取得する。<br>
 複数のサーボへの要求をまとめて送ることができる。<br>
 取得するサーボ情報は、開始アドレスと取得したいデータ長を決める。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;servo_data_set&nbsp;サーボ情報を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid&nbsp;サーボID<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;address&nbsp;サーボ情報格納先先頭アドレス<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;length&nbsp;サーボ情報読み出しデータ長<br>
+&nbsp;&nbsp;&nbsp;&nbsp;servo_data_set(dict):&nbsp;サーボ情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid(int):&nbsp;サーボID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;address(int):&nbsp;サーボ情報格納先先頭アドレス(範囲は0～53)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;length(int):&nbsp;サーボ情報読み出しデータ長(範囲は1～54)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':3,&nbsp;'address':1,&nbsp;'length':20},&nbsp;{'sid':4,&nbsp;'address':1,&nbsp;'length':20]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'sid':3,&nbsp;'address':1,&nbsp;'length':20},&nbsp;{'sid':4,&nbsp;'address':1,&nbsp;'length':20}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略した場合は1秒)<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;サーボ現在情報を書いた辞書データのリスト(引数servo_data_setにdataを加えたもの)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tuple:&nbsp;サーボ現在情報を書いた辞書データ(引数servo_data_setにdataを加えたもの)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':3,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]},&nbsp;{'sid':4,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;({'sid':3,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]},&nbsp;{'sid':4,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02])<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_vid_pwm_cycle"><strong>get_vid_pwm_cycle</strong></a>(self, timeout=1)</dt><dd><tt>PWM周期のVID設定の取得<br>
 &nbsp;<br>
 PWM周期の情報をVID設定から読み取る。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;PWM周期を示す数値(VID格納値の4倍)<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;<br>
+Raises:</tt></dd></dl>
 
-<dl><dt><a name="Connect-get_vid_value"><strong>get_vid_value</strong></a>(self, vid_data_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「VID要求」コマンドを送信<br>
+<dl><dt><a name="Connect-get_vid_value"><strong>get_vid_value</strong></a>(self, *vid_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「VID要求」コマンドを送信<br>
 &nbsp;<br>
 各種変数を保持するVIDの設定の読み込みを行う。<br>
 複数のVIDの要求をまとめて送ることができる。<br>
 VIDの定義内容はコマンドリファレンス参照。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;vid_data_set&nbsp;VID設定情報を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vid&nbsp;設定値ID<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'vid':6},&nbsp;{'vid':7}]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*vid_set(int):&nbsp;VID設定情報<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;VID設定情報を書いた辞書データのリスト(引数vid_data_setにvdtを加えたもの)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vid&nbsp;設定値ID<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vdt&nbsp;設定値<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tuple:&nbsp;VID設定情報を書いた辞書データ(引数vid_data_setにvdtを加えたもの)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vid(int):&nbsp;設定値ID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vdt(int):&nbsp;設定値<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'vid':6,&nbsp;'vdt':0x0e},&nbsp;{'vid':7,&nbsp;'vdt':0xa6}]<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'vid':6,&nbsp;'vdt':0x0e},&nbsp;{'vid':7,&nbsp;'vdt':0xa6}<br>
+&nbsp;<br>
+Raises:</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_vid_version"><strong>get_vid_version</strong></a>(self, timeout=1)</dt><dd><tt>バージョン情報のVID設定の取得<br>
 &nbsp;<br>
 V-Sido&nbsp;CONNECTのバージョン情報をVID設定から読み取る。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
+&nbsp;<br>
+Raises:</tt></dd></dl>
+
+<dl><dt><a name="Connect-is_connected"><strong>is_connected</strong></a>(self)</dt><dd><tt>V-Sidoとの接続確認<br>
+&nbsp;<br>
+V-Sido&nbsp;CONNECTと接続状態にあるかどうかの確認<br>
+&nbsp;<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;バージョンを示す数値<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;bool:&nbsp;接続している時はTrue、接続していない時はFalseを返す</tt></dd></dl>
 
 <dl><dt><a name="Connect-make_2byte_data"><strong>make_2byte_data</strong></a>(self, value)</dt><dd><tt>数値データから2Byteデータを作る<br>
 &nbsp;<br>
@@ -252,13 +222,13 @@ Raises:<br>
 &nbsp;(「V-Sido&nbsp;CONNECT&nbsp;RC&nbsp;Command&nbsp;Reference」参照)<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;value&nbsp;加工したい数値<br>
+&nbsp;&nbsp;&nbsp;&nbsp;value(int):&nbsp;加工したい数値<br>
+&nbsp;<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;加工済み2Byteのデータのリスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;list:&nbsp;加工済み2Byteのデータのリスト<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0x0e,&nbsp;0xa6]<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生</tt></dd></dl>
+Raises:</tt></dd></dl>
 
 <dl><dt><a name="Connect-parse_2byte_data"><strong>parse_2byte_data</strong></a>(self, data)</dt><dd><tt>V-Sido&nbsp;CONNECTからの2Byteデータを数値に戻す<br>
 &nbsp;<br>
@@ -272,117 +242,79 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0x0e,&nbsp;0xa6]<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;加工して元に戻した数値<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生</tt></dd></dl>
+Raises:</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_feedback_id"><strong>set_feedback_id</strong></a>(self, sid_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「フィードバックID設定」コマンドの送信<br>
+<dl><dt><a name="Connect-set_feedback_id"><strong>set_feedback_id</strong></a>(self, *sid_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「フィードバックID設定」コマンドの送信<br>
 &nbsp;<br>
 フィードバック情報を欲しいサーボモータのIDの設定を行う。<br>
 フィードバックIDを設定した後、フィードバック要求を行うこと。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;sid_data_set&nbsp;サーボの最大最小角度情報を書いた辞書データのリスト(範囲は-180.0～180.0度)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid&nbsp;サーボID<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':1},&nbsp;{'sid':2}]<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*sid(int):&nbsp;サーボID<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_gpio_config"><strong>set_gpio_config</strong></a>(self, gpio_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IO設定」コマンドの送信<br>
+<dl><dt><a name="Connect-set_gpio_config"><strong>set_gpio_config</strong></a>(self, *gpio_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IO設定」コマンドの送信<br>
 &nbsp;<br>
 GPIOピン4～7番の出力を設定する。<br>
 事前にset_vid_set_io_mode()でピンを出力に切り替えなければならない。<br>
 valueは0でLOW、1でHIGHとなる。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;gpio_data_set&nbsp;出力情報を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iid&nbsp;GPIOピン番号(範囲は4～7)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value&nbsp;0がLOW、1がHIGH<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*gpio_data_set(dict)&nbsp;出力情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iid(int):&nbsp;GPIOピン番号(範囲は4～7)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value(int):&nbsp;0がLOW、1がHIGH<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'iid':4,&nbsp;'value':1},&nbsp;{'iid':5,&nbsp;'value':0}]<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'iid':4,&nbsp;'value':1},&nbsp;{'iid':5,&nbsp;'value':0}<br>
+&nbsp;<br>
+Raises:</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_ik"><strong>set_ik</strong></a>(self, ik_data_set, feedback=False, timeout=0.5)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IK設定」コマンドの送信<br>
+<dl><dt><a name="Connect-set_ik"><strong>set_ik</strong></a>(self, *ik_data_set, feedback=False, timeout=0.5)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IK設定」コマンドの送信<br>
 &nbsp;<br>
 IK(Inverse&nbsp;Kinematics:逆運動学)に基づいた手足の位置指定を行う。<br>
 手先、足先位置を、x:左右、y:前後、z:上下で指定することで、関節角度の計算が行われる。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ik_data_set&nbsp;IK設定情報を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kid&nbsp;IK部位の番号<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kdt&nbsp;IK用設定データ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;x座標に関するデータ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y&nbsp;y座標に関するデータ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;z&nbsp;z座標に関するデータ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*ik_data_set(dict):&nbsp;IK設定情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kid(int):&nbsp;IK部位の番号<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kdt(dict):&nbsp;IK用設定データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x(int):&nbsp;x座標に関するデータ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y(int):&nbsp;y座標に関するデータ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;z(int):&nbsp;z座標に関するデータ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'kid':2,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}},&nbsp;{'kid':3,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}}]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;feedback&nbsp;コマンド送信後、IK情報のリターンを求めるかのbool値(省略可、省略した場合フィードバックなし)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;timeout&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は0.5秒)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'kid':2,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}},&nbsp;{'kid':3,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;feedback(Optional[bool]):&nbsp;コマンド送信後、IK情報のリターンを求めるかのbool値(省略した場合フィードバックなし)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略した場合は0.5秒)<br>
+&nbsp;<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;現在のIK位置の辞書データのリスト(ただし、引数でfeedback=Trueの場合のみ)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kid&nbsp;IK部位の番号<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kdt&nbsp;IK用設定データ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;x座標に関するデータ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y&nbsp;y座標に関するデータ<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;z&nbsp;z座標に関するデータ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tuple:&nbsp;現在のIK位置の辞書データ(ただし、引数でfeedback=Trueの場合のみ)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kid(int):&nbsp;IK部位の番号<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kdt(dict):&nbsp;IK用設定データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x(int):&nbsp;x座標に関するデータ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y(int):&nbsp;y座標に関するデータ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;z(int):&nbsp;z座標に関するデータ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'kid':2,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}},&nbsp;{'kid':3,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}}]<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectTimeoutError">ConnectTimeoutError</a>&nbsp;レスポンスがタイムアウトした場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectInvalidResponseError">ConnectInvalidResponseError</a>&nbsp;レスポンスが期待する書式と違った場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'kid':2,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}},&nbsp;{'kid':3,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}}<br>
+&nbsp;<br>
+Raises:</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_post_receive_process"><strong>set_post_receive_process</strong></a>(self, post_receive_process)</dt><dd><tt>レスポンス一式受信後の処理を定義<br>
-&nbsp;<br>
-シリアル通信でレスポンス一式を受け取った後に個別の処理を追加したい場合、この関数を利用し定義する。<br>
-定義する関数は、引数としてレスポンスのリストを取れるようにしてなければならない。<br>
-&nbsp;<br>
-Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;post_receive_process&nbsp;受信後実行する関数<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数に変数以外が渡された場合発生</tt></dd></dl>
-
-<dl><dt><a name="Connect-set_post_send_process"><strong>set_post_send_process</strong></a>(self, post_send_process)</dt><dd><tt>コマンド一式送信後の処理を定義<br>
-&nbsp;<br>
-シリアル通信でコマンド一式を送った後に個別の処理を追加したい場合、この関数を利用し定義する。<br>
-定義する関数は、引数としてレスポンスのリストを取れるようにしてなければならない。<br>
-&nbsp;<br>
-Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;post_send_process&nbsp;送信後実行する関数<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数に変数以外が渡された場合発生</tt></dd></dl>
-
-<dl><dt><a name="Connect-set_pwm_pulse_width"><strong>set_pwm_pulse_width</strong></a>(self, pwm_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「PWM設定」コマンドの送信<br>
+<dl><dt><a name="Connect-set_pwm_pulse_width"><strong>set_pwm_pulse_width</strong></a>(self, *pwm_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「PWM設定」コマンドの送信<br>
 &nbsp;<br>
 GPIOピン6番、7番にPWMのパルス幅を設定する。<br>
 事前にset_vid_use_pwm()でPWMを利用できるようにしなければならない。<br>
 パルス幅の上限は、VID設定のPWM周期以下でなければならない。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;pwm_data_set&nbsp;パルス幅情報を書いた辞書データのリスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pwm_data_set(dict):&nbsp;パルス幅情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iid(int):&nbsp;GPIOピン番号(範囲は6～7)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pulse(int):&nbsp;パルス幅(範囲は0～65536で4usec単位)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iid&nbsp;GPIOピン番号(範囲は6～7)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pulse&nbsp;パルス幅(範囲は0～65536で4usec単位)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'iid':6,&nbsp;'pulse':15000},&nbsp;{'iid':7,&nbsp;'pulse':7500}]<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'iid':6,&nbsp;'pulse':15000},&nbsp;{'iid':7,&nbsp;'pulse':7500}<br>
+&nbsp;<br>
+Raises:</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_servo_angle"><strong>set_servo_angle</strong></a>(self, angle_data_set, cycle_time)</dt><dd><tt>V-Sido&nbsp;CONNECTに「目標角度設定」コマンドの送信<br>
+<dl><dt><a name="Connect-set_servo_angle"><strong>set_servo_angle</strong></a>(self, *angle_data_set, cycle_time=0)</dt><dd><tt>V-Sido&nbsp;CONNECTに「目標角度設定」コマンドの送信<br>
 &nbsp;<br>
 各サーボモータに目標角度情報を与える。<br>
 複数のサーボモータへの情報をまとめて送ることができる。<br>
@@ -390,71 +322,63 @@ Raises:<br>
 目標角度に移行するまでの時間の引数はmsec単位で指定できるが、精度は10msec。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;angle_data_set&nbsp;サーボの角度情報を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid&nbsp;サーボID<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;angle&nbsp;角度(範囲は-180.0～180.0度、精度は0.1度)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*angle_data_set(dict):&nbsp;サーボの角度情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid(int):&nbsp;サーボID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;angle(int/float):&nbsp;角度(範囲は-180.0～180.0度、精度は0.1度)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':1,&nbsp;'angle':20},&nbsp;{'sid':2,&nbsp;'angle':-20}]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;cycle_time&nbsp;目標角度に移行するまでの時間(範囲は0～1000msec)<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'sid':1,&nbsp;'angle':20},&nbsp;{'sid':2,&nbsp;'angle':-20})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;cycle_time(Optional[int]):&nbsp;目標角度に移行するまでの時間(範囲は0～1000msec)(省略した場合は0)<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_servo_compliance"><strong>set_servo_compliance</strong></a>(self, compliance_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「コンプライアンス設定」コマンドの送信<br>
+<dl><dt><a name="Connect-set_servo_compliance"><strong>set_servo_compliance</strong></a>(self, *compliance_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「コンプライアンス設定」コマンドの送信<br>
 &nbsp;<br>
 各サーボモータのコンプライアンスに関する設定を行う。<br>
 複数のサーボモータへの情報をまとめて送ることができる。<br>
 引数のコンプライアンススロープ値の範囲は1~254。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;compliance_data_set&nbsp;サーボのコンプライアンス情報を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid&nbsp;サーボID<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compliance_cw&nbsp;時計回りのコンプライアンススロープ値(範囲は1～254)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compliance_ccw&nbsp;反時計回りのコンプライアンススロープ値(範囲は1～254)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*compliance_data_set(dict):&nbsp;サーボのコンプライアンス情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid(int):&nbsp;サーボID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compliance_cw(int):&nbsp;時計回りのコンプライアンススロープ値(範囲は1～254)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compliance_ccw(int):&nbsp;反時計回りのコンプライアンススロープ値(範囲は1～254)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':1,&nbsp;'compliance_cw':100,&nbsp;'compliance_ccw':100},&nbsp;{'sid':2,&nbsp;'compliance_cw':100,&nbsp;'compliance_ccw':50}]<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'sid':1,&nbsp;'compliance_cw':100,&nbsp;'compliance_ccw':100},&nbsp;{'sid':2,&nbsp;'compliance_cw':100,&nbsp;'compliance_ccw':50}<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument&nbsp;type</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_servo_min_max_angle"><strong>set_servo_min_max_angle</strong></a>(self, min_max_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「最大・最小角設定」コマンドの送信<br>
+<dl><dt><a name="Connect-set_servo_min_max_angle"><strong>set_servo_min_max_angle</strong></a>(self, *min_max_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「最大・最小角設定」コマンドの送信<br>
 &nbsp;<br>
 各サーボモータの可動範囲の最大、最小角度を設定する。<br>
 複数のサーボモータへの情報をまとめて送ることができる。<br>
 引数の角度範囲は-180度～180度だが、実際の可動域はロボットによる。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;min_max_data_set&nbsp;サーボの最大最小角度情報を書いた辞書データのリスト(範囲は-180.0～180.0度)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid&nbsp;サーボID<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;min&nbsp;最小角度(範囲は-180.0～180.0度、精度は0.1度)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;max&nbsp;最大角度(範囲は-180.0～180.0度、精度は0.1度)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*min_max_data_set(dict):&nbsp;サーボの最大最小角度情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sid(int):&nbsp;サーボID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;min(int/float):&nbsp;最小角度(範囲は-180.0～180.0度、精度は0.1度)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;max(int/float):&nbsp;最大角度(範囲は-180.0～180.0度、精度は0.1度)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'sid':1,&nbsp;'min':-100,&nbsp;'max':100},&nbsp;{'sid':2,&nbsp;'min':-150,&nbsp;'max':50}]<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'sid':1,&nbsp;'min':-100,&nbsp;'max':100},&nbsp;{'sid':2,&nbsp;'min':-150,&nbsp;'max':50}<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_vid_io_mode"><strong>set_vid_io_mode</strong></a>(self, gpio_data_set)</dt><dd><tt>GPIOピン4～7番を入出力どちらで利用するかのVID設定の書き込み<br>
+<dl><dt><a name="Connect-set_vid_io_mode"><strong>set_vid_io_mode</strong></a>(self, *gpio_data_set)</dt><dd><tt>GPIOピン4～7番を入出力どちらで利用するかのVID設定の書き込み<br>
 &nbsp;<br>
 GPIOピンの4～7番を入出力に使うかの設定を行う。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;gpio_data_set&nbsp;GIPOの設定を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iid&nbsp;GPIOのピン番号(範囲は4～7)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mode&nbsp;0が入力、1が出力<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*gpio_data_set(dict):&nbsp;GIPOの設定を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iid(int):&nbsp;GPIOのピン番号(範囲は4～7)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mode(int):&nbsp;0が入力、1が出力<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'iid':4,&nbsp;'mode':0},&nbsp;{'iid':5,&nbsp;'mode':1}]<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'iid':4,&nbsp;'mode':0},&nbsp;{'iid':5,&nbsp;'mode':1}<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_vid_pwm_cycle"><strong>set_vid_pwm_cycle</strong></a>(self, pwm_cycle)</dt><dd><tt>PWM周期を設定するVID設定の書き込み<br>
 &nbsp;<br>
@@ -462,12 +386,10 @@ GPIOピンの6番、7番のPWM出力のPWM周期の設定を行う。<br>
 引数を省略した場合はPWMを利用することとなる。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;pwm_cycle&nbsp;PWM周期(範囲は4～16384usecだが、精度は4usec)<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pwm_cycle(int):&nbsp;PWM周期(範囲は4～16384usecだが、精度は4usec)<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_vid_use_pwm"><strong>set_vid_use_pwm</strong></a>(self, use=True)</dt><dd><tt>PWM利用を利用するかどうかのVID設定の書き込み<br>
 &nbsp;<br>
@@ -476,29 +398,25 @@ GPIOピンの6番、7番をPWM出力に使うかの設定を行う。<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;GPIOピン6番、7番をPWMに使うかどうかのbool値(省略可)<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_vid_value"><strong>set_vid_value</strong></a>(self, vid_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「VID設定」コマンドの送信<br>
+<dl><dt><a name="Connect-set_vid_value"><strong>set_vid_value</strong></a>(self, *vid_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「VID設定」コマンドの送信<br>
 &nbsp;<br>
 各種変数を保持するVIDの設定の書き込みを行う。<br>
 複数のVIDの情報をまとめて送ることができる。<br>
 VIDの定義内容はコマンドリファレンス参照。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;vid_data_set&nbsp;VID設定情報を書いた辞書データのリスト<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vid&nbsp;設定値ID<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vdt&nbsp;設定値<br>
+&nbsp;&nbsp;&nbsp;&nbsp;*vid_data_set(dict):&nbsp;VID設定情報を書いた辞書データ<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vid(int):&nbsp;設定値ID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vdt(int):&nbsp;設定値<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[{'vid':6,&nbsp;'vdt':0x0e},&nbsp;{'vid':7,&nbsp;'vdt':0xa6}]<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'vid':6,&nbsp;'vdt':0x0e},&nbsp;{'vid':7,&nbsp;'vdt':0xa6}<br>
+&nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
 
 <dl><dt><a name="Connect-walk"><strong>walk</strong></a>(self, forward, turn_cw)</dt><dd><tt>V-Sido&nbsp;CONNECTに「移動情報指定（歩行）」コマンドの送信<br>
 &nbsp;<br>
@@ -506,24 +424,14 @@ Raises:<br>
 歩行中も次のコマンドを受け取ることができる。<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;forward&nbsp;前後の移動方向(-100～100で前が正)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;turn_cw&nbsp;左右の旋回方向(-100～100で時計回りが正)<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectParameterError">ConnectParameterError</a>&nbsp;引数の条件を間違っていた場合発生<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;forward(int):&nbsp;前後の移動方向(-100～100で前が正)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;turn_cw(int):&nbsp;左右の旋回方向(-100～100で時計回りが正)<br>
+&nbsp;<br>
+Raises:</tt></dd></dl>
 
 <dl><dt><a name="Connect-write_flash"><strong>write_flash</strong></a>(self)</dt><dd><tt>V-Sido&nbsp;CONNECTに「フラッシュ書き込み要求」コマンドの送信<br>
 &nbsp;<br>
-現在のVID設定情報をV-Sido&nbsp;CONNECTのフラッシュに書き込む。<br>
-&nbsp;<br>
-Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;なし<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ConnectNotConnectedError">ConnectNotConnectedError</a>&nbsp;接続していなかった場合発生</tt></dd></dl>
+現在のVID設定情報をV-Sido&nbsp;CONNECTのフラッシュに書き込む。</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -532,250 +440,6 @@ Data descriptors defined here:<br>
 </dl>
 <dl><dt><strong>__weakref__</strong></dt>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-</td></tr></table> <p>
-<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
-<tr bgcolor="#ffc8d8">
-<td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="ConnectInvalidResponseError">class <strong>ConnectInvalidResponseError</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
-    
-<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>V-Sido&nbsp;CONNECT&nbsp;Invalid&nbsp;Response&nbsp;Error<br>&nbsp;</tt></td></tr>
-<tr><td>&nbsp;</td>
-<td width="100%"><dl><dt>Method resolution order:</dt>
-<dd><a href="vsido.connect.html#ConnectInvalidResponseError">ConnectInvalidResponseError</a></dd>
-<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
-<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
-<dd><a href="builtins.html#object">builtins.object</a></dd>
-</dl>
-<hr>
-Data descriptors defined here:<br>
-<dl><dt><strong>__weakref__</strong></dt>
-<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-<hr>
-Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
-<dl><dt><a name="ConnectInvalidResponseError-__init__"><strong>__init__</strong></a>(self, /, *args, **kwargs)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
-
-<dl><dt><a name="ConnectInvalidResponseError-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
-
-<hr>
-Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
-<dl><dt><a name="ConnectInvalidResponseError-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
-
-<dl><dt><a name="ConnectInvalidResponseError-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
-
-<dl><dt><a name="ConnectInvalidResponseError-__reduce__"><strong>__reduce__</strong></a>(...)</dt></dl>
-
-<dl><dt><a name="ConnectInvalidResponseError-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
-
-<dl><dt><a name="ConnectInvalidResponseError-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
-
-<dl><dt><a name="ConnectInvalidResponseError-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
-
-<dl><dt><a name="ConnectInvalidResponseError-__str__"><strong>__str__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
-
-<dl><dt><a name="ConnectInvalidResponseError-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#ConnectInvalidResponseError-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
-set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
-
-<hr>
-Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
-<dl><dt><strong>__cause__</strong></dt>
-<dd><tt>exception&nbsp;cause</tt></dd>
-</dl>
-<dl><dt><strong>__context__</strong></dt>
-<dd><tt>exception&nbsp;context</tt></dd>
-</dl>
-<dl><dt><strong>__dict__</strong></dt>
-</dl>
-<dl><dt><strong>__suppress_context__</strong></dt>
-</dl>
-<dl><dt><strong>__traceback__</strong></dt>
-</dl>
-<dl><dt><strong>args</strong></dt>
-</dl>
-</td></tr></table> <p>
-<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
-<tr bgcolor="#ffc8d8">
-<td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="ConnectNotConnectedError">class <strong>ConnectNotConnectedError</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
-    
-<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>V-Sido&nbsp;CONNECT&nbsp;Not&nbsp;Connected&nbsp;Error<br>&nbsp;</tt></td></tr>
-<tr><td>&nbsp;</td>
-<td width="100%"><dl><dt>Method resolution order:</dt>
-<dd><a href="vsido.connect.html#ConnectNotConnectedError">ConnectNotConnectedError</a></dd>
-<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
-<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
-<dd><a href="builtins.html#object">builtins.object</a></dd>
-</dl>
-<hr>
-Data descriptors defined here:<br>
-<dl><dt><strong>__weakref__</strong></dt>
-<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-<hr>
-Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
-<dl><dt><a name="ConnectNotConnectedError-__init__"><strong>__init__</strong></a>(self, /, *args, **kwargs)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
-
-<dl><dt><a name="ConnectNotConnectedError-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
-
-<hr>
-Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
-<dl><dt><a name="ConnectNotConnectedError-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
-
-<dl><dt><a name="ConnectNotConnectedError-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
-
-<dl><dt><a name="ConnectNotConnectedError-__reduce__"><strong>__reduce__</strong></a>(...)</dt></dl>
-
-<dl><dt><a name="ConnectNotConnectedError-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
-
-<dl><dt><a name="ConnectNotConnectedError-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
-
-<dl><dt><a name="ConnectNotConnectedError-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
-
-<dl><dt><a name="ConnectNotConnectedError-__str__"><strong>__str__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
-
-<dl><dt><a name="ConnectNotConnectedError-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#ConnectNotConnectedError-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
-set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
-
-<hr>
-Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
-<dl><dt><strong>__cause__</strong></dt>
-<dd><tt>exception&nbsp;cause</tt></dd>
-</dl>
-<dl><dt><strong>__context__</strong></dt>
-<dd><tt>exception&nbsp;context</tt></dd>
-</dl>
-<dl><dt><strong>__dict__</strong></dt>
-</dl>
-<dl><dt><strong>__suppress_context__</strong></dt>
-</dl>
-<dl><dt><strong>__traceback__</strong></dt>
-</dl>
-<dl><dt><strong>args</strong></dt>
-</dl>
-</td></tr></table> <p>
-<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
-<tr bgcolor="#ffc8d8">
-<td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="ConnectParameterError">class <strong>ConnectParameterError</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
-    
-<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>V-Sido&nbsp;CONNECT&nbsp;Command&nbsp;Parameter&nbsp;Error<br>&nbsp;</tt></td></tr>
-<tr><td>&nbsp;</td>
-<td width="100%"><dl><dt>Method resolution order:</dt>
-<dd><a href="vsido.connect.html#ConnectParameterError">ConnectParameterError</a></dd>
-<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
-<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
-<dd><a href="builtins.html#object">builtins.object</a></dd>
-</dl>
-<hr>
-Data descriptors defined here:<br>
-<dl><dt><strong>__weakref__</strong></dt>
-<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-<hr>
-Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
-<dl><dt><a name="ConnectParameterError-__init__"><strong>__init__</strong></a>(self, /, *args, **kwargs)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
-
-<dl><dt><a name="ConnectParameterError-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
-
-<hr>
-Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
-<dl><dt><a name="ConnectParameterError-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
-
-<dl><dt><a name="ConnectParameterError-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
-
-<dl><dt><a name="ConnectParameterError-__reduce__"><strong>__reduce__</strong></a>(...)</dt></dl>
-
-<dl><dt><a name="ConnectParameterError-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
-
-<dl><dt><a name="ConnectParameterError-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
-
-<dl><dt><a name="ConnectParameterError-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
-
-<dl><dt><a name="ConnectParameterError-__str__"><strong>__str__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
-
-<dl><dt><a name="ConnectParameterError-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#ConnectParameterError-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
-set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
-
-<hr>
-Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
-<dl><dt><strong>__cause__</strong></dt>
-<dd><tt>exception&nbsp;cause</tt></dd>
-</dl>
-<dl><dt><strong>__context__</strong></dt>
-<dd><tt>exception&nbsp;context</tt></dd>
-</dl>
-<dl><dt><strong>__dict__</strong></dt>
-</dl>
-<dl><dt><strong>__suppress_context__</strong></dt>
-</dl>
-<dl><dt><strong>__traceback__</strong></dt>
-</dl>
-<dl><dt><strong>args</strong></dt>
-</dl>
-</td></tr></table> <p>
-<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
-<tr bgcolor="#ffc8d8">
-<td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#000000" face="helvetica, arial"><a name="ConnectTimeoutError">class <strong>ConnectTimeoutError</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
-    
-<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>V-Sido&nbsp;CONNECT&nbsp;Timeout&nbsp;Error<br>&nbsp;</tt></td></tr>
-<tr><td>&nbsp;</td>
-<td width="100%"><dl><dt>Method resolution order:</dt>
-<dd><a href="vsido.connect.html#ConnectTimeoutError">ConnectTimeoutError</a></dd>
-<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
-<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
-<dd><a href="builtins.html#object">builtins.object</a></dd>
-</dl>
-<hr>
-Data descriptors defined here:<br>
-<dl><dt><strong>__weakref__</strong></dt>
-<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
-</dl>
-<hr>
-Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
-<dl><dt><a name="ConnectTimeoutError-__init__"><strong>__init__</strong></a>(self, /, *args, **kwargs)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
-
-<dl><dt><a name="ConnectTimeoutError-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
-
-<hr>
-Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
-<dl><dt><a name="ConnectTimeoutError-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
-
-<dl><dt><a name="ConnectTimeoutError-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
-
-<dl><dt><a name="ConnectTimeoutError-__reduce__"><strong>__reduce__</strong></a>(...)</dt></dl>
-
-<dl><dt><a name="ConnectTimeoutError-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
-
-<dl><dt><a name="ConnectTimeoutError-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
-
-<dl><dt><a name="ConnectTimeoutError-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
-
-<dl><dt><a name="ConnectTimeoutError-__str__"><strong>__str__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
-
-<dl><dt><a name="ConnectTimeoutError-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#ConnectTimeoutError-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
-set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
-
-<hr>
-Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
-<dl><dt><strong>__cause__</strong></dt>
-<dd><tt>exception&nbsp;cause</tt></dd>
-</dl>
-<dl><dt><strong>__context__</strong></dt>
-<dd><tt>exception&nbsp;context</tt></dd>
-</dl>
-<dl><dt><strong>__dict__</strong></dt>
-</dl>
-<dl><dt><strong>__suppress_context__</strong></dt>
-</dl>
-<dl><dt><strong>__traceback__</strong></dt>
-</dl>
-<dl><dt><strong>args</strong></dt>
 </dl>
 </td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
