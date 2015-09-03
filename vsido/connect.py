@@ -108,18 +108,19 @@ class Connect(object):
         Raises:
             serial.SerialException: シリアルポートがオープンできなかった場合発生
         '''
-        try:
-            self._serial = serial.serial_for_url(port, baudrate, timeout=1)
-        except serial.SerialException:
-            sys.stderr.write('could not open port %r: %s\n' % (port, e))
-            raise
-        self._connected = True
-        self._start_receiver()
-        while self._firmware_version is None:
+        if not self._connected:
             try:
-                self._firmware_version = self.get_vid_version(timeout=5)
-            except TimeoutError:
-                pass
+                self._serial = serial.serial_for_url(port, baudrate, timeout=1)
+            except serial.SerialException:
+                sys.stderr.write('could not open port %r: %s\n' % (port, e))
+                raise
+                self._connected = True
+                self._start_receiver()
+                while self._firmware_version is None:
+                    try:
+                        self._firmware_version = self.get_vid_version(timeout=1)
+                    except TimeoutError:
+                        pass
 
     def disconnect(self):
         '''V-Sido CONNECTからの切断
@@ -192,6 +193,7 @@ class Connect(object):
 
         Raises:
             ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         if not isinstance(cycle_time, int):
             raise ValueError('cycle_time must be int')
@@ -245,7 +247,8 @@ class Connect(object):
                 {'sid':1, 'compliance_cw':100, 'compliance_ccw':100}, {'sid':2, 'compliance_cw':100, 'compliance_ccw':50}
 
         Raises:
-            ValueError: invalid argument type
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         for compliance_data in compliance_data_set:
             if not isinstance(compliance_data, dict):
@@ -300,6 +303,7 @@ class Connect(object):
 
         Raises:
             ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         for min_max_data in min_max_data_set:
             if not isinstance(min_max_data, dict):
@@ -366,6 +370,8 @@ class Connect(object):
 
         Raises:
             ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
+            TimeoutError: V-Sido CONNECT response timeout
         '''
         for servo_data in servo_data_set:
             if not isinstance(servo_data, dict):
@@ -436,6 +442,7 @@ class Connect(object):
 
         Raises:
             ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         for sid in sid_set:
             if not isinstance(sid, int):
@@ -472,6 +479,8 @@ class Connect(object):
 
         Raises:
             ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
+            TimeoutError: V-Sido CONNECT response timeout
         '''
         if not isinstance(address, int):
             raise ValueError('address must be int')
@@ -531,6 +540,7 @@ class Connect(object):
 
         Raises:
             ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         mode_data = 0;
         for gpio_data in gpio_data_set:
@@ -562,6 +572,7 @@ class Connect(object):
 
         Raises:
             ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         if not isinstance(use, bool):
             raise ValueError('use must be bool')
@@ -583,6 +594,7 @@ class Connect(object):
 
         Raises:
             ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         if not isinstance(pwm_cycle, int):
             raise ValueError('pwm_cycle must be int')
@@ -610,6 +622,7 @@ class Connect(object):
 
         Raises:
             ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         for vid_data in vid_data_set:
             if not isinstance(vid_data, dict):
@@ -651,6 +664,8 @@ class Connect(object):
             timeout(Optional[int/float]): 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
 
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
@@ -665,6 +680,9 @@ class Connect(object):
             timeout(Optional[int/float]): 受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)
 
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
+            TimeoutError: V-Sido CONNECT response timeout
         '''
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
@@ -690,6 +708,9 @@ class Connect(object):
                 {'vid':6, 'vdt':0x0e}, {'vid':7, 'vdt':0xa6}
 
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
+            TimeoutError: V-Sido CONNECT response timeout
         '''
         for vid in vid_set:
             if not isinstance(vid, int):
@@ -739,6 +760,9 @@ class Connect(object):
         '''V-Sido CONNECTに「フラッシュ書き込み要求」コマンドの送信
 
         現在のVID設定情報をV-Sido CONNECTのフラッシュに書き込む。
+
+        Raises:
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         self._send_data(self._make_write_flash_command())
 
@@ -766,6 +790,8 @@ class Connect(object):
                 {'iid':4, 'value':1}, {'iid':5, 'value':0}
 
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         for gpio_data in gpio_data_set:
             if not isinstance(gpio_data, dict):
@@ -811,6 +837,9 @@ class Connect(object):
                 {'iid':6, 'pulse':15000}, {'iid':7, 'pulse':7500}
 
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
+            TimeoutError: V-Sido CONNECT response timeout
         '''
         if self._pwm_cycle is None:
             self._pwm_cycle = self.get_vid_pwm_cycle()
@@ -859,7 +888,11 @@ class Connect(object):
                 time(int) 関節角度受信までの時間(usec)
                 example:
                 ({'sid':6, 'time':48}, {'sid':7, 'time':50})
+
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
+            TimeoutError: V-Sido CONNECT response timeout
         '''
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
@@ -920,6 +953,9 @@ class Connect(object):
                 {'kid':2, 'kdt':{'x':0, 'y':0, 'z':100}}, {'kid':3, 'kdt':{'x':0, 'y':0, 'z':100}}
 
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
+            TimeoutError: V-Sido CONNECT response timeout
         '''
         for ik_data in ik_data_set:
             if not isinstance(ik_data, dict):
@@ -996,6 +1032,9 @@ class Connect(object):
                 example:
                 ({'kid':2, 'kdt':{'x':0, 'y':0, 'z':100}}, {'kid':3, 'kdt':{'x':0, 'y':0, 'z':100}})
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
+            TimeoutError: V-Sido CONNECT response timeout
         '''
         for kid in kid_set:
             if not isinstance(kid, int):
@@ -1049,7 +1088,8 @@ class Connect(object):
             turn_cw(int): 左右の旋回方向(-100～100で時計回りが正)
 
         Raises:
-
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         if not isinstance(forward, int):
             raise ValueError('forward must be int')
@@ -1091,7 +1131,11 @@ class Connect(object):
                 az(int): Z軸方向の加速度(1～253)
                 example:
                 {'ax': 125, 'az': 118, 'ay': 158}
+
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
+            TimeoutError: V-Sido CONNECT response timeout
         '''
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
@@ -1157,7 +1201,10 @@ class Connect(object):
             list: 加工済み2Byteのデータのリスト
                 example:
                 [0x0e, 0xa6]
+
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         if not isinstance(value, int):
             raise ValueError('value must be int')
@@ -1181,9 +1228,13 @@ class Connect(object):
             data 加工したい2Byteのデータのリスト
                 example:
                 [0x0e, 0xa6]
+
         Returns:
             加工して元に戻した数値
+
         Raises:
+            ValueError: invalid argument
+            ConnectionError: V-Sido CONNECT is not connected
         '''
         if not isinstance(data, list):
             raise ValueError('data must be list')
@@ -1210,6 +1261,7 @@ class Connect(object):
             return command_data
 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
 
     import sys
