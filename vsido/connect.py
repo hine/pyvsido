@@ -118,7 +118,7 @@ class Connect(object):
         while self._firmware_version is None:
             try:
                 self._firmware_version = self.get_vid_version(timeout=5)
-            except ConnectTimeoutError:
+            except TimeoutError:
                 pass
 
     def disconnect(self):
@@ -409,8 +409,7 @@ class Connect(object):
         ''' 「サーボ情報要求」のレスポンスデータのパース '''
         if not isinstance(response_data, list):
             raise ValueError('response_data must be list')
-        if len(response_data) < 6:
-            # TODO(hine.gdw@gmail.com): 接続していないサーボに問い合わせをした場合はレスポンスのレングスが短いので、それをどう考えるか
+        if len(response_data) < 4:
             raise ValueError('Invalid response_data length')
         if not response_data[1] == Connect._COMMAND_OP_SERVO_INFO:
             raise ValueError('invalid response_data OP')
@@ -484,7 +483,7 @@ class Connect(object):
             raise ValueError('length must be int')
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
-        return self._parse_servo_feedback_response(address, length, self._send_data_wait_response(self._make_get_servo_feedback_command(address, length), timeout))
+        return self._parse_servo_feedback_response(address, length, response_data=self._send_data_wait_response(self._make_get_servo_feedback_command(address, length), timeout))
 
     def _make_get_servo_feedback_command(self, address, length):
         ''' 「サーボ情報要求」コマンドのデータ生成 '''
@@ -500,13 +499,13 @@ class Connect(object):
     def _parse_servo_feedback_response(self, address, length, response_data):
         ''' 「サーボ情報要求」のレスポンスデータのパース '''
         if not isinstance(response_data, list):
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
-        if len(response_data) < 6:
-            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+            raise ValueError('response_data must be list')
+        if len(response_data) < 4:
+            raise ValueError('Invalid response_data length')
         if not response_data[1] == Connect._COMMAND_OP_GET_FEEDBACK:
-            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+            raise ValueError('Invalid response_data OP')
         servo_num = (len(response_data) - 4) // (length + 1)
-        servo_data_set = []
+        servo_data_set = tuple()
         for i in range(0, servo_num):
             servo_data = {}
             servo_data['sid'] = response_data[3 + i * length]
@@ -515,7 +514,7 @@ class Connect(object):
             servo_data['data'] = []
             for j in range(0, length):
                 servo_data['data'].append(response_data[4 + i * length + j])
-            servo_data_set.append(servo_data)
+            servo_data_set += (servo_data,)
         return servo_data_set
 
     def set_vid_io_mode(self, *gpio_data_set):
@@ -655,7 +654,7 @@ class Connect(object):
         '''
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
-        return self.get_vid_value(254, timeout)[0]['vdt']
+        return self.get_vid_value(254, timeout=timeout)[0]['vdt']
 
     def get_vid_pwm_cycle(self, timeout=1):
         '''PWM周期のVID設定の取得
@@ -669,7 +668,7 @@ class Connect(object):
         '''
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
-        pwd_data = self.get_vid_value({'vid':6}, {'vid':7}, timeout)
+        pwd_data = self.get_vid_value(6, 7, timeout=timeout)
         return (pwd_data[0]['vdt'] * 256 + pwd_data[1]['vdt']) * 4
 
     def get_vid_value(self, *vid_set, timeout=1):
@@ -700,7 +699,7 @@ class Connect(object):
                 raise ValueError('vid must be int')
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
-        return self._parse_vid_response(vid_set, response_data=self._send_data_wait_response(self._make_get_vid_value_command(*vid_set), timeout))
+        return self._parse_vid_response(*vid_set, response_data=self._send_data_wait_response(self._make_get_vid_value_command(*vid_set), timeout))
 
     def _make_get_vid_value_command(self, *vid_set):
         ''' 「VID要求」コマンドのデータ生成 '''
@@ -864,7 +863,7 @@ class Connect(object):
         '''
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
-        return self._parse_check_servo_response(self._send_data_wait_response(self._make_check_connected_servo_command(), timeout))
+        return self._parse_check_connected_servo_response(self._send_data_wait_response(self._make_check_connected_servo_command(), timeout))
 
     def _make_check_connected_servo_command(self):
         ''' 「接続確認要求」コマンドのデータ生成 '''
@@ -875,21 +874,21 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
-    def _parse_check_servo_response(self, response_data):
+    def _parse_check_connected_servo_response(self, response_data):
         ''' 「接続確認要求」のレスポンスデータのパース '''
         if not isinstance(response_data, list):
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
-        if len(response_data) < 6:
-            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+            raise ValueError('response_data must be list')
+        if len(response_data) < 4:
+            raise ValueError('invalid response_data length')
         if not response_data[1] == Connect._COMMAND_OP_CHECK_SERVO:
-            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+            raise ValueError('invalid response_data OP')
         sid_num = (len(response_data) - 4) // 2
-        sid_data_set = []
+        sid_data_set = tuple()
         for i in range(0, sid_num):
             sid_data = {}
             sid_data['sid'] = response_data[3 + i * 2]
             sid_data['time'] = response_data[4 + i * 2]
-            sid_data_set.append(sid_data)
+            sid_data_set += (sid_data, )
         return sid_data_set
 
     def set_ik(self, *ik_data_set, feedback=False, timeout=0.5):
@@ -956,9 +955,9 @@ class Connect(object):
         if not isinstance(feedback, bool):
             raise ValueError('feedback must be bool')
         if not feedback:
-            self._send_data(self._make_set_ik_command(ik_data_set, feedback))
+            self._send_data(self._make_set_ik_command(*ik_data_set, feedback=feedback))
         else:
-            return self._parse_ik_response(self._send_data_wait_response(self._make_set_ik_command(ik_data_set, feedback)))
+            return self._parse_ik_response(self._send_data_wait_response(self._make_set_ik_command(*ik_data_set, feedback=feedback)))
 
     def _make_set_ik_command(self, *ik_data_set, feedback):
         ''' 「IK設定」コマンドのデータ生成 '''
@@ -986,6 +985,7 @@ class Connect(object):
         Args:
             *ik_set(int): IK設定情報を書いた辞書データ
             timeout(Optional[int/float]): 受信タイムアウトするまでの秒数(省略した場合は1秒)
+
         Returns:
             tuple: 現在のIK位置の辞書データ
                 kid(int): IK部位の番号
@@ -1004,9 +1004,9 @@ class Connect(object):
                 raise ValueError('kid must be 0 - 15')
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
-        return self._parse_ik_response(self._send_data_wait_response(self._make_get_ik_command(*kid_set), timeout))
+        return self._parse_ik_response(response_data=self._send_data_wait_response(self._make_get_ik_command(*kid_set), timeout))
 
-    def _make_get_ik_command(self, kid_set):
+    def _make_get_ik_command(self, *kid_set):
         ''' 「IK取得」コマンドのデータ生成 '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
@@ -1021,13 +1021,13 @@ class Connect(object):
     def _parse_ik_response(self, response_data):
         ''' 「IK設定」のレスポンスデータのパース '''
         if not isinstance(response_data, list):
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
-        if len(response_data) < 9:
-            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+            raise ValueError('response_data must be list')
+        if len(response_data) < 4:
+            raise ValueError('invalid response_data length')
         if not response_data[1] == Connect._COMMAND_OP_IK:
-            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+            raise ValueError('invalid response_data OP')
         ik_num = (len(response_data) - 5) // 4
-        ik_data_set = []
+        ik_data_set = tuple()
         for i in range(0, ik_num):
             ik_data = {}
             ik_data['kid'] = response_data[i * 4 + 4]
@@ -1035,7 +1035,7 @@ class Connect(object):
             ik_data['kdt']['x'] = response_data[i * 4 + 5] - 100
             ik_data['kdt']['y'] = response_data[i * 4 + 6] - 100
             ik_data['kdt']['z'] = response_data[i * 4 + 7] - 100
-            ik_data_set.append(ik_data)
+            ik_data_set += (ik_data,)
         return ik_data_set
 
     def walk(self, forward, turn_cw):
@@ -1095,7 +1095,7 @@ class Connect(object):
         '''
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
-        return self._parse_acceleration_response(self._send_data_wait_response(self._make_get_acceleration_command(), timeout))
+        return self._parse_acceleration_response(response_data=self._send_data_wait_response(self._make_get_acceleration_command(), timeout))
 
     def _make_get_acceleration_command(self):
         ''' 「加速度センサ値要求」コマンドのデータ生成 '''
@@ -1109,11 +1109,11 @@ class Connect(object):
     def _parse_acceleration_response(self, response_data):
         ''' 「加速度センサ値要求」のレスポンスデータのパース '''
         if not isinstance(response_data, list):
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
+            raise ValueError('response_data must be list')
         if not len(response_data) == 7:
-            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+            raise ValueError('invalid response_data length')
         if not response_data[1] == Connect._COMMAND_OP_ACCELERATION:
-            raise ConnectInvalidResponseError(sys._getframe().f_code.co_name)
+            raise ValueError('invalid response_data OP')
         acceleration_data = {}
         acceleration_data['ax'] = response_data[3]
         acceleration_data['ay'] = response_data[4]
@@ -1123,7 +1123,7 @@ class Connect(object):
     def _send_data(self, command_data):
         ''' V-Sido CONNECTにシリアル経由でデータ送信 '''
         if not self._connected:
-            raise ConnectNotConnectedError(sys._getframe().f_code.co_name)
+            raise ConnectionError('V-Sido CONNECT is not connected')
         data_bytes = b''
         for data in command_data:
             data_bytes += data.to_bytes(1, byteorder='little')
@@ -1141,7 +1141,7 @@ class Connect(object):
         while not self._response_waiting_buffer:
             if not timeout == 0:
                 if time.time() - wait_start > timeout:
-                    raise ConnectTimeoutError(sys._getframe().f_code.co_name)
+                    raise TimeoutError('V-Sido CONNECT response timeout')
         return self._response_waiting_buffer
 
     def make_2byte_data(self, value):
@@ -1184,12 +1184,11 @@ class Connect(object):
         Returns:
             加工して元に戻した数値
         Raises:
-            ConnectParameterError 引数の条件を間違っていた場合発生
         '''
         if not isinstance(data, list):
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
+            raise ValueError('data must be list')
         if not len(data) == 2:
-            raise ConnectParameterError(sys._getframe().f_code.co_name)
+            raise ValueError('invalid response_data length')
         # データを数値に戻し、全体を右に1ビットシフトする
         value_tmp = int.from_bytes(data, byteorder='little', signed=True) >> 1
         # 再度、上位Byteと下位Byteに分解する
@@ -1209,26 +1208,6 @@ class Connect(object):
                 sum ^= data
             command_data[len(command_data) - 1] = sum
             return command_data
-
-
-class ConnectParameterError(Exception):
-    ''' V-Sido CONNECT Command Parameter Error '''
-    pass
-
-
-class ConnectNotConnectedError(Exception):
-    ''' V-Sido CONNECT Not Connected Error '''
-    pass
-
-
-class ConnectTimeoutError(Exception):
-    ''' V-Sido CONNECT Timeout Error '''
-    pass
-
-
-class ConnectInvalidResponseError(Exception):
-    ''' V-Sido CONNECT Invalid Response Error '''
-    pass
 
 
 if __name__ == '__main__':
