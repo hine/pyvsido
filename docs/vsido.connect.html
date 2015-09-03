@@ -77,7 +77,11 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time(int)&nbsp;関節角度受信までの時間(usec)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;({'sid':6,&nbsp;'time':48},&nbsp;{'sid':7,&nbsp;'time':50})<br>
-Raises:</tt></dd></dl>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
 <dl><dt><a name="Connect-connect"><strong>connect</strong></a>(self, port, baudrate=115200)</dt><dd><tt>V-Sido&nbsp;CONNECTにシリアルポート経由で接続<br>
 &nbsp;<br>
@@ -112,7 +116,11 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;az(int):&nbsp;Z軸方向の加速度(1～253)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'ax':&nbsp;125,&nbsp;'az':&nbsp;118,&nbsp;'ay':&nbsp;158}<br>
-Raises:</tt></dd></dl>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_ik"><strong>get_ik</strong></a>(self, *kid_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IK取得」コマンドの送信<br>
 &nbsp;<br>
@@ -131,7 +139,10 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;z(int):&nbsp;z座標に関するデータ<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;({'kid':2,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}},&nbsp;{'kid':3,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}})<br>
-Raises:</tt></dd></dl>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_servo_feedback"><strong>get_servo_feedback</strong></a>(self, address, length, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「フィードバック要求」コマンドを送信<br>
 &nbsp;<br>
@@ -148,7 +159,9 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;({'sid':3,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]},&nbsp;{'sid':4,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]])<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_servo_info"><strong>get_servo_info</strong></a>(self, *servo_data_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「サーボ情報要求」コマンドを送信<br>
 &nbsp;<br>
@@ -170,7 +183,9 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;({'sid':3,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02]},&nbsp;{'sid':4,&nbsp;'address':1,&nbsp;'length':2,&nbsp;'data':[0x01,&nbsp;0x02])<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_vid_pwm_cycle"><strong>get_vid_pwm_cycle</strong></a>(self, timeout=1)</dt><dd><tt>PWM周期のVID設定の取得<br>
 &nbsp;<br>
@@ -179,7 +194,10 @@ PWM周期の情報をVID設定から読み取る。<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
 &nbsp;<br>
-Raises:</tt></dd></dl>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_vid_value"><strong>get_vid_value</strong></a>(self, *vid_set, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「VID要求」コマンドを送信<br>
 &nbsp;<br>
@@ -198,7 +216,10 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'vid':6,&nbsp;'vdt':0x0e},&nbsp;{'vid':7,&nbsp;'vdt':0xa6}<br>
 &nbsp;<br>
-Raises:</tt></dd></dl>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_vid_version"><strong>get_vid_version</strong></a>(self, timeout=1)</dt><dd><tt>バージョン情報のVID設定の取得<br>
 &nbsp;<br>
@@ -207,7 +228,9 @@ V-Sido&nbsp;CONNECTのバージョン情報をVID設定から読み取る。<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;timeout(Optional[int/float]):&nbsp;受信タイムアウトするまでの秒数(省略可、省略した場合は1秒)<br>
 &nbsp;<br>
-Raises:</tt></dd></dl>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-is_connected"><strong>is_connected</strong></a>(self)</dt><dd><tt>V-Sidoとの接続確認<br>
 &nbsp;<br>
@@ -228,7 +251,10 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;list:&nbsp;加工済み2Byteのデータのリスト<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0x0e,&nbsp;0xa6]<br>
-Raises:</tt></dd></dl>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-parse_2byte_data"><strong>parse_2byte_data</strong></a>(self, data)</dt><dd><tt>V-Sido&nbsp;CONNECTからの2Byteデータを数値に戻す<br>
 &nbsp;<br>
@@ -240,9 +266,13 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data&nbsp;加工したい2Byteのデータのリスト<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0x0e,&nbsp;0xa6]<br>
+&nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;加工して元に戻した数値<br>
-Raises:</tt></dd></dl>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_feedback_id"><strong>set_feedback_id</strong></a>(self, *sid_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「フィードバックID設定」コマンドの送信<br>
 &nbsp;<br>
@@ -253,7 +283,8 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;*sid(int):&nbsp;サーボID<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_gpio_config"><strong>set_gpio_config</strong></a>(self, *gpio_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IO設定」コマンドの送信<br>
 &nbsp;<br>
@@ -268,7 +299,9 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'iid':4,&nbsp;'value':1},&nbsp;{'iid':5,&nbsp;'value':0}<br>
 &nbsp;<br>
-Raises:</tt></dd></dl>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_ik"><strong>set_ik</strong></a>(self, *ik_data_set, feedback=False, timeout=0.5)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IK設定」コマンドの送信<br>
 &nbsp;<br>
@@ -297,7 +330,10 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'kid':2,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}},&nbsp;{'kid':3,&nbsp;'kdt':{'x':0,&nbsp;'y':0,&nbsp;'z':100}}<br>
 &nbsp;<br>
-Raises:</tt></dd></dl>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_pwm_pulse_width"><strong>set_pwm_pulse_width</strong></a>(self, *pwm_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「PWM設定」コマンドの送信<br>
 &nbsp;<br>
@@ -312,7 +348,10 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'iid':6,&nbsp;'pulse':15000},&nbsp;{'iid':7,&nbsp;'pulse':7500}<br>
 &nbsp;<br>
-Raises:</tt></dd></dl>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_servo_angle"><strong>set_servo_angle</strong></a>(self, *angle_data_set, cycle_time=0)</dt><dd><tt>V-Sido&nbsp;CONNECTに「目標角度設定」コマンドの送信<br>
 &nbsp;<br>
@@ -330,7 +369,8 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;cycle_time(Optional[int]):&nbsp;目標角度に移行するまでの時間(範囲は0～1000msec)(省略した場合は0)<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_servo_compliance"><strong>set_servo_compliance</strong></a>(self, *compliance_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「コンプライアンス設定」コマンドの送信<br>
 &nbsp;<br>
@@ -347,7 +387,8 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'sid':1,&nbsp;'compliance_cw':100,&nbsp;'compliance_ccw':100},&nbsp;{'sid':2,&nbsp;'compliance_cw':100,&nbsp;'compliance_ccw':50}<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument&nbsp;type</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_servo_min_max_angle"><strong>set_servo_min_max_angle</strong></a>(self, *min_max_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「最大・最小角設定」コマンドの送信<br>
 &nbsp;<br>
@@ -364,7 +405,8 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'sid':1,&nbsp;'min':-100,&nbsp;'max':100},&nbsp;{'sid':2,&nbsp;'min':-150,&nbsp;'max':50}<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_vid_io_mode"><strong>set_vid_io_mode</strong></a>(self, *gpio_data_set)</dt><dd><tt>GPIOピン4～7番を入出力どちらで利用するかのVID設定の書き込み<br>
 &nbsp;<br>
@@ -378,7 +420,8 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'iid':4,&nbsp;'mode':0},&nbsp;{'iid':5,&nbsp;'mode':1}<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_vid_pwm_cycle"><strong>set_vid_pwm_cycle</strong></a>(self, pwm_cycle)</dt><dd><tt>PWM周期を設定するVID設定の書き込み<br>
 &nbsp;<br>
@@ -389,7 +432,8 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;pwm_cycle(int):&nbsp;PWM周期(範囲は4～16384usecだが、精度は4usec)<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_vid_use_pwm"><strong>set_vid_use_pwm</strong></a>(self, use=True)</dt><dd><tt>PWM利用を利用するかどうかのVID設定の書き込み<br>
 &nbsp;<br>
@@ -400,7 +444,8 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;GPIOピン6番、7番をPWMに使うかどうかのbool値(省略可)<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-set_vid_value"><strong>set_vid_value</strong></a>(self, *vid_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「VID設定」コマンドの送信<br>
 &nbsp;<br>
@@ -416,7 +461,8 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'vid':6,&nbsp;'vdt':0x0e},&nbsp;{'vid':7,&nbsp;'vdt':0xa6}<br>
 &nbsp;<br>
 Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument</tt></dd></dl>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-walk"><strong>walk</strong></a>(self, forward, turn_cw)</dt><dd><tt>V-Sido&nbsp;CONNECTに「移動情報指定（歩行）」コマンドの送信<br>
 &nbsp;<br>
@@ -427,11 +473,16 @@ Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;forward(int):&nbsp;前後の移動方向(-100～100で前が正)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;turn_cw(int):&nbsp;左右の旋回方向(-100～100で時計回りが正)<br>
 &nbsp;<br>
-Raises:</tt></dd></dl>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <dl><dt><a name="Connect-write_flash"><strong>write_flash</strong></a>(self)</dt><dd><tt>V-Sido&nbsp;CONNECTに「フラッシュ書き込み要求」コマンドの送信<br>
 &nbsp;<br>
-現在のVID設定情報をV-Sido&nbsp;CONNECTのフラッシュに書き込む。</tt></dd></dl>
+現在のVID設定情報をV-Sido&nbsp;CONNECTのフラッシュに書き込む。<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>

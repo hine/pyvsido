@@ -1,6 +1,5 @@
 # coding:utf-8
-'''
-Python3用V-Sido Connectライブラリ
+'''Python3用V-Sido Connectライブラリ
 
 Copyright (c) 2015 Daisuke IMAI
 
@@ -17,7 +16,7 @@ import serial
 DEFAULT_BAUTRATE = 115200
 
 class Connect(object):
-    ''' V-Sido CONNECTのためのクラス
+    '''V-Sido CONNECTのためのクラス
     '''
     _COMMAND_ST = 0xff;
     _COMMAND_OP_ANGLE = 0x6f # 'o'
@@ -73,13 +72,15 @@ class Connect(object):
         self._reset_values()
 
     def _reset_values(self):
-        ''' V-Sido CONNECT接続後に取得すべきデータのクリア '''
+        '''V-Sido CONNECT接続後に取得すべきデータのクリア
+        '''
         self._connected = False
         self._firmware_version = None
         self._pwm_cycle = None
 
     def _default_post_receive_handler(self, received_data):
-        ''' 受信後処理のデフォルト関数 '''
+        '''受信後処理のデフォルト関数
+        '''
         if self._debug:
             received_data_str = []
             for data in received_data:
@@ -87,7 +88,8 @@ class Connect(object):
             print('[debug]< ' + ' '.join(received_data_str))
 
     def _default_post_send_handler(self, sent_data):
-        ''' 送信後処理のデフォルト関数 '''
+        '''送信後処理のデフォルト関数
+        '''
         if self._debug:
             sent_data_str = []
             for data in sent_data:
@@ -144,19 +146,22 @@ class Connect(object):
         return self._connected
 
     def _start_receiver(self):
-        ''' 受信スレッドの立ち上げ '''
+        '''受信スレッドの立ち上げ
+        '''
         self._receiver_alive = True
         self._receiver_thread = threading.Thread(target=self._receiver)
         self._receiver_thread.setDaemon(True)
         self._receiver_thread.start()
 
     def _stop_receiver(self):
-        ''' 受信スレッドの停止 '''
+        '''受信スレッドの停止
+        '''
         self._receiver_alive = False
         self._receiver_thread.join()
 
     def _receiver(self):
-        ''' 受信スレッドの処理 '''
+        '''受信スレッドの処理
+        '''
         try:
             while self._receiver_alive:
                 data = self._serial.read(1)
@@ -217,7 +222,8 @@ class Connect(object):
         self._send_data(self._make_set_servo_angle_command(*angle_data_set, cycle_time=cycle_time))
 
     def _make_set_servo_angle_command(self, *angle_data_set, cycle_time):
-        ''' 「目標角度設定」コマンドのデータ生成 '''
+        '''「目標角度設定」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_ANGLE) # OP
@@ -274,7 +280,8 @@ class Connect(object):
         self._send_data(self._make_set_servo_compliance_command(*compliance_data_set))
 
     def _make_set_servo_compliance_command(self, *compliance_data_set):
-        ''' 「コンプライアンス設定」コマンドのデータ生成 '''
+        '''「コンプライアンス設定」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_COMPLIANCE) # OP
@@ -331,7 +338,8 @@ class Connect(object):
         self._send_data(self._make_set_servo_min_max_angle_command(*min_max_data_set))
 
     def _make_set_servo_min_max_angle_command(self, *min_max_data_set):
-        ''' 「最大・最小角設定」コマンドのデータ生成 '''
+        '''「最大・最小角設定」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_MIN_MAX) # OP
@@ -399,7 +407,8 @@ class Connect(object):
         return self._parse_servo_info_response(*servo_data_set, response_data=self._send_data_wait_response(self._make_get_servo_info_command(*servo_data_set), timeout))
 
     def _make_get_servo_info_command(self, *servo_data_set):
-        ''' 「サーボ情報要求」コマンドのデータ生成 '''
+        '''「サーボ情報要求」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_SERVO_INFO) # OP
@@ -412,7 +421,8 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def _parse_servo_info_response(self, *servo_data_set, response_data):
-        ''' 「サーボ情報要求」のレスポンスデータのパース '''
+        '''「サーボ情報要求」のレスポンスデータのパース
+        '''
         if not isinstance(response_data, list):
             raise ValueError('response_data must be list')
         if len(response_data) < 4:
@@ -452,7 +462,8 @@ class Connect(object):
         self._send_data(self._make_set_feedback_id_command(*sid_set))
 
     def _make_set_feedback_id_command(self, *sid_set):
-        ''' 「フィードバックID設定」コマンドのデータ生成 '''
+        '''「フィードバックID設定」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_FEEDBACK_ID) # OP
@@ -495,7 +506,8 @@ class Connect(object):
         return self._parse_servo_feedback_response(address, length, response_data=self._send_data_wait_response(self._make_get_servo_feedback_command(address, length), timeout))
 
     def _make_get_servo_feedback_command(self, address, length):
-        ''' 「サーボ情報要求」コマンドのデータ生成 '''
+        '''「サーボ情報要求」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_GET_FEEDBACK) # OP
@@ -506,7 +518,8 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def _parse_servo_feedback_response(self, address, length, response_data):
-        ''' 「サーボ情報要求」のレスポンスデータのパース '''
+        '''「サーボ情報要求」のレスポンスデータのパース
+        '''
         if not isinstance(response_data, list):
             raise ValueError('response_data must be list')
         if len(response_data) < 4:
@@ -644,7 +657,8 @@ class Connect(object):
         self._send_data(self._make_set_vid_value_command(*vid_data_set))
 
     def _make_set_vid_value_command(self, *vid_data_set):
-        ''' 「VID設定」コマンドのデータ生成 '''
+        '''「VID設定」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_SET_VID_VALUE) # OP
@@ -723,7 +737,8 @@ class Connect(object):
         return self._parse_vid_response(*vid_set, response_data=self._send_data_wait_response(self._make_get_vid_value_command(*vid_set), timeout))
 
     def _make_get_vid_value_command(self, *vid_set):
-        ''' 「VID要求」コマンドのデータ生成 '''
+        '''「VID要求」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_GET_VID_VALUE) # OP
@@ -734,7 +749,8 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def _parse_vid_response(self, *vid_set, response_data):
-        ''' 「VID要求」のレスポンスデータのパース '''
+        '''「VID要求」のレスポンスデータのパース
+        '''
         if not isinstance(response_data, list):
             raise ValueError('response_data must be list')
         if len(response_data) < 5:
@@ -767,7 +783,8 @@ class Connect(object):
         self._send_data(self._make_write_flash_command())
 
     def _make_write_flash_command(self):
-        ''' 「フラッシュ書き込み要求」コマンドのデータ生成 '''
+        '''「フラッシュ書き込み要求」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_WRITE_FLASH) # OP
@@ -811,7 +828,8 @@ class Connect(object):
         self._send_data(self._make_set_gpio_config_command(*gpio_data_set))
 
     def _make_set_gpio_config_command(self, *gpio_data_set):
-        ''' 「IO設定」コマンドのデータ生成 '''
+        '''「IO設定」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_GPIO) # OP
@@ -861,7 +879,8 @@ class Connect(object):
         self._send_data(self._make_set_pwm_pulse_width_command(*pwm_data_set))
 
     def _make_set_pwm_pulse_width_command(self, *pwm_data_set):
-        ''' 「PWM設定」コマンドのデータ生成 '''
+        '''「PWM設定」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_PWM) # OP
@@ -899,7 +918,8 @@ class Connect(object):
         return self._parse_check_connected_servo_response(self._send_data_wait_response(self._make_check_connected_servo_command(), timeout))
 
     def _make_check_connected_servo_command(self):
-        ''' 「接続確認要求」コマンドのデータ生成 '''
+        '''「接続確認要求」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_CHECK_SERVO) # OP
@@ -908,7 +928,8 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def _parse_check_connected_servo_response(self, response_data):
-        ''' 「接続確認要求」のレスポンスデータのパース '''
+        '''「接続確認要求」のレスポンスデータのパース
+        '''
         if not isinstance(response_data, list):
             raise ValueError('response_data must be list')
         if len(response_data) < 4:
@@ -996,7 +1017,8 @@ class Connect(object):
             return self._parse_ik_response(self._send_data_wait_response(self._make_set_ik_command(*ik_data_set, feedback=feedback)))
 
     def _make_set_ik_command(self, *ik_data_set, feedback):
-        ''' 「IK設定」コマンドのデータ生成 '''
+        '''「IK設定」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_IK) # OP
@@ -1046,7 +1068,8 @@ class Connect(object):
         return self._parse_ik_response(response_data=self._send_data_wait_response(self._make_get_ik_command(*kid_set), timeout))
 
     def _make_get_ik_command(self, *kid_set):
-        ''' 「IK取得」コマンドのデータ生成 '''
+        '''「IK取得」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_IK) # OP
@@ -1058,7 +1081,8 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def _parse_ik_response(self, response_data):
-        ''' 「IK設定」のレスポンスデータのパース '''
+        '''「IK設定」のレスポンスデータのパース
+        '''
         if not isinstance(response_data, list):
             raise ValueError('response_data must be list')
         if len(response_data) < 4:
@@ -1102,7 +1126,8 @@ class Connect(object):
         self._send_data(self._make_walk_command(forward, turn_cw))
 
     def _make_walk_command(self, forward, turn_cw):
-        ''' 「移動情報指定（歩行）」コマンドのデータ生成 '''
+        '''「移動情報指定（歩行）」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_WALK) # OP
@@ -1142,7 +1167,8 @@ class Connect(object):
         return self._parse_acceleration_response(response_data=self._send_data_wait_response(self._make_get_acceleration_command(), timeout))
 
     def _make_get_acceleration_command(self):
-        ''' 「加速度センサ値要求」コマンドのデータ生成 '''
+        '''「加速度センサ値要求」コマンドのデータ生成
+        '''
         data = []
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_ACCELERATION) # OP
@@ -1151,7 +1177,8 @@ class Connect(object):
         return self._adjust_ln_sum(data);
 
     def _parse_acceleration_response(self, response_data):
-        ''' 「加速度センサ値要求」のレスポンスデータのパース '''
+        '''「加速度センサ値要求」のレスポンスデータのパース
+        '''
         if not isinstance(response_data, list):
             raise ValueError('response_data must be list')
         if not len(response_data) == 7:
@@ -1165,7 +1192,8 @@ class Connect(object):
         return acceleration_data
 
     def _send_data(self, command_data):
-        ''' V-Sido CONNECTにシリアル経由でデータ送信 '''
+        '''V-Sido CONNECTにシリアル経由でデータ送信
+        '''
         if not self._connected:
             raise ConnectionError('V-Sido CONNECT is not connected')
         data_bytes = b''
@@ -1175,7 +1203,8 @@ class Connect(object):
         self._post_send_handler(command_data)
 
     def _send_data_wait_response(self, command_data, timeout=0.5):
-        ''' V-Sido CONNECTにシリアル経由でデータ送信して受信を待つ '''
+        '''V-Sido CONNECTにシリアル経由でデータ送信して受信を待つ
+        '''
         self._response_waiting_buffer = []
         try:
             self._send_data(command_data)
@@ -1250,7 +1279,8 @@ class Connect(object):
         return int.from_bytes([value_high, value_low], byteorder='big', signed=True)
 
     def _adjust_ln_sum(self, command_data):
-        ''' データ中のLN(Length)とSUM(CheckSum)の調整 '''
+        '''データ中のLN(Length)とSUM(CheckSum)の調整
+        '''
         ln_pos = 1 if command_data[0] in [0x0c, 0x0d, 0x53, 0x54] else 2
         if len(command_data) > 3:
             command_data[ln_pos] = len(command_data);
