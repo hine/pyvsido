@@ -116,13 +116,13 @@ class Connect(object):
             except serial.SerialException:
                 sys.stderr.write('could not open port %r: %s\n' % (port, e))
                 raise
-                self._connected = True
-                self._start_receiver()
-                while self._firmware_version is None:
-                    try:
-                        self._firmware_version = self.get_vid_version(timeout=1)
-                    except TimeoutError:
-                        pass
+            self._connected = True
+            self._start_receiver()
+            while self._firmware_version is None:
+                try:
+                    self._firmware_version = self.get_vid_version(timeout=1)
+                except TimeoutError:
+                    pass
 
     def disconnect(self):
         '''V-Sido CONNECTからの切断
