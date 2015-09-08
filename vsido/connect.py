@@ -193,7 +193,7 @@ class Connect(object):
                 sid(int): サーボID
                 angle(int/float): 角度(範囲は-180.0～180.0度、精度は0.1度)
                 example:
-                {'sid':1, 'angle':20}, {'sid':2, 'angle':-20})
+                {'sid':1, 'angle':20}, {'sid':2, 'angle':-20}
             cycle_time(Optional[int]): 目標角度に移行するまでの時間(範囲は0～1000msec)(省略した場合は0)
 
         Raises:
