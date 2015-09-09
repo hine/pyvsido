@@ -1,7 +1,7 @@
 # pyvsido
 
 ## これは何？
-[アスラテック株式会社](http://www.asratec.co.jp/ "アスラテック株式会社")のロボット制御マイコンボード「[V-Sido CONNECT RC](http://www.asratec.co.jp/product/connect/rc/ "V-Sido CONNECT RC")」をコントロールするためのPythonのライブラリです。  
+[アスラテック株式会社](http://www.asratec.co.jp/ "アスラテック株式会社")のロボット制御マイコンボード「[V-Sido CONNECT RC](https://www.asratec.co.jp/v-sido-connect/v-sido-connect-rc/ "V-Sido CONNECT RC")」をコントロールするためのPythonのライブラリです。  
 [V-Sido Developerサイトの技術資料](https://v-sido-developer.com/learning/connect/connect-rc/ "V-Sido Developerサイトの技術資料")に公開されている情報を元に個人が作成したもので、アスラテック社公式のライブラリではありません。  
 
 ## 誰が作ったの？
@@ -29,5 +29,5 @@ vc.walk(100, 0)
 このサンプルコードを利用して発生したいかなる損害についても、アスラテック株式会社ならびに今井大介は責任を負いません。自己責任での利用をお願いします。  
 
 ## ライセンス
-このライブラリは、MITライセンスで配布します。MITライセンスについてはLICENSE.txtを見てください。  
+このライブラリは、MITライセンスで配布します。MITライセンスについてはLICENSEを見てください。  
 This software is released under the MIT License, see LICENSE file.
