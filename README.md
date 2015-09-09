@@ -13,6 +13,13 @@ $ cd pyvsido
 $ pip install .  
 で、ライブラリを導入してください。  
 
+ライブラリのアップデート方法  
+$ git pull  
+$ pip install --upgrade .  
+
+ライブラリのアンインストール
+$ pip uninstall pyvsido  
+  
 ライブラリの使い方の例  
 ```py
 import vsido  
