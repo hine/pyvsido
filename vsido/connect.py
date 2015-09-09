@@ -65,7 +65,6 @@ class Connect(object):
         self._post_send_handler = post_send_handler or self._default_post_send_handler
 
         # 受信用のバッファ用意
-        self._receive_buffer = []
         self._response_waiting_buffer = []
 
         # 接続状態などの保持値をクリア
@@ -96,7 +95,7 @@ class Connect(object):
                 sent_data_str.append('%02x' % data)
             print('[debug]> ' + ' '.join(sent_data_str))
 
-    def connect(self, port, baudrate=DEFAULT_BAUTRATE):
+    def open(self, port, baudrate=DEFAULT_BAUTRATE):
         '''V-Sido CONNECTにシリアルポート経由で接続
 
         シリアルポートを通じてV-Sido CONNECTに接続する。
@@ -124,7 +123,12 @@ class Connect(object):
                 except TimeoutError:
                     pass
 
-    def disconnect(self):
+    def connect(self, port, baudrate=DEFAULT_BAUTRATE):
+        '''open()の別名
+        '''
+        self.open(port, baudrate)
+
+    def close(self):
         '''V-Sido CONNECTからの切断
 
         V-Sido CONNECTと接続しているシリアルポートを明示的に閉じ切断する。
@@ -134,6 +138,11 @@ class Connect(object):
             self._stop_receiver()
             self._serial.close()
             self._reset_values()
+
+    def disconnect(self):
+        '''close()の別名
+        '''
+        self.close()
 
     def is_connected(self):
         '''V-Sidoとの接続確認
@@ -162,22 +171,31 @@ class Connect(object):
     def _receiver(self):
         '''受信スレッドの処理
         '''
+        receive_buffer = []
+        timeout_par_byte = 0.05 #データ1Byte受信想定のタイムアウト値で、実際には1Byteごとには行わない
+        timeout = timeout_par_byte * 4 # 最低4Byteのデータが帰って来るのは確実なので、下でLNが拾えたタイミングで変更
+        receive_start = time.time()
         try:
             while self._receiver_alive:
+                if len(receive_buffer) > 0 and time.time() > receive_start + timeout:
+                    receive_buffer = []
                 data = self._serial.read(1)
                 if len(data) > 0:
-                    if int.from_bytes(data, byteorder='big') == Connect._COMMAND_ST:
-                        self._receive_buffer = []
-                    self._receive_buffer.append(int.from_bytes(data, byteorder='big'))
-                    if len(self._receive_buffer) > 3:
-                        if len(self._receive_buffer) == self._receive_buffer[2]:
-                            if not self._receive_buffer[1] == Connect._COMMAND_OP_ACK:
+                    receive_buffer.append(int.from_bytes(data, byteorder='big'))
+                    if len(receive_buffer) == 1:
+                        receive_start = time.time()
+                        timeout = timeout_par_byte * 4
+                    if len(receive_buffer) == 3:
+                        timeout = timeout_par_byte * receive_buffer[2]
+                    if len(receive_buffer) > 3:
+                        if len(receive_buffer) == receive_buffer[2]:
+                            if not receive_buffer[1] == Connect._COMMAND_OP_ACK:
                                 # ackじゃなかった場合はレスポンス待ちのデータということで格納する
-                                self._response_waiting_buffer = self._receive_buffer
-                            self._post_receive_handler(self._receive_buffer)
-                            self._receive_buffer = []
+                                self._response_waiting_buffer = receive_buffer
+                            self._post_receive_handler(receive_buffer)
+                            receive_buffer = []
         except serial.SerialException:
-            self.alive = False
+            self._receiver_alive = False
             raise
 
     def set_servo_angle(self, *angle_data_set, cycle_time=0):
@@ -792,7 +810,7 @@ class Connect(object):
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data);
 
-    def set_gpio_config	(self, *gpio_data_set):
+    def set_gpio_value	(self, *gpio_data_set):
         '''V-Sido CONNECTに「IO設定」コマンドの送信
 
         GPIOピン4～7番の出力を設定する。
@@ -825,9 +843,9 @@ class Connect(object):
                 raise ValueError('value must be int')
             if not gpio_data['value'] in [0, 1]:
                 raise ValueError('value must be 0 or 1')
-        self._send_data(self._make_set_gpio_config_command(*gpio_data_set))
+        self._send_data(self._make_set_gpio_value_command(*gpio_data_set))
 
-    def _make_set_gpio_config_command(self, *gpio_data_set):
+    def _make_set_gpio_value_command(self, *gpio_data_set):
         '''「IO設定」コマンドのデータ生成
         '''
         data = []
@@ -1196,6 +1214,8 @@ class Connect(object):
         '''
         if not self._connected:
             raise ConnectionError('V-Sido CONNECT is not connected')
+        if len(command_data) > 254:
+            raise ValueError('command_data too long')
         data_bytes = b''
         for data in command_data:
             data_bytes += data.to_bytes(1, byteorder='little')
@@ -1208,7 +1228,7 @@ class Connect(object):
         self._response_waiting_buffer = []
         try:
             self._send_data(command_data)
-        except ConnectNotConnectedError:
+        except (ConnectionError, ValueError):
             raise
         wait_start = time.time()
         while not self._response_waiting_buffer:
@@ -1297,21 +1317,21 @@ if __name__ == '__main__':
     import sys
     import time
 
-    DEFAULT_PORT = '/dev/tty.usbserial'
+    DEFAULT_PORT = 'com3'
 
     # 受信データを表示する関数のサンプル
     def post_receive(received_data):
         received_data_str = []
         for data in received_data:
             received_data_str.append('%02x' % data)
-        print('< ' + ' '.join(received_data_str))
+        print('[RX] ' + ' '.join(received_data_str))
 
     # 送信データを表示する関数のサンプル
     def post_send(sent_data):
         sent_data_str = []
         for data in sent_data:
             sent_data_str.append('%02x' % data)
-        print('> ' + ' '.join(sent_data_str))
+        print('[TX] ' + ' '.join(sent_data_str))
 
     print('=== Python V-Sido TEST ===')
 
@@ -1323,19 +1343,17 @@ if __name__ == '__main__':
     baudrate = DEFAULT_BAUTRATE
 
     # V-Sido CONNECT用のインスタンス生成（初期化でシリアルポートをオープンする）
-    vsidoconnect = Connect()
+    vsidoconnect = Connect(post_receive_handler=post_receive, post_send_handler=post_send, debug=True)
     # シリアルポートをオープン、受信スレッドの立ち上げ
     print('Connecting to robot...', end='')
     try:
-        vsidoconnect.connect(port, baudrate)
+        vsidoconnect.open(port, baudrate)
     except serial.SerialException:
         print('fail.')
         sys.exit(1)
     print('done.')
 
     # 送受信後の処理を自作関数に置き換える方法
-    vsidoconnect.set_post_send_process(post_send)
-    vsidoconnect.set_post_receive_process(post_receive)
     print('exit: Ctrl-C')
     print('')
 

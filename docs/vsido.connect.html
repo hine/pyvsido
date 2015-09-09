@@ -83,23 +83,14 @@ Raises:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected<br>
 &nbsp;&nbsp;&nbsp;&nbsp;TimeoutError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;response&nbsp;timeout</tt></dd></dl>
 
-<dl><dt><a name="Connect-connect"><strong>connect</strong></a>(self, port, baudrate=115200)</dt><dd><tt>V-Sido&nbsp;CONNECTにシリアルポート経由で接続<br>
-&nbsp;<br>
-シリアルポートを通じてV-Sido&nbsp;CONNECTに接続する。<br>
-色々なコマンドを投げる前にまず実行しなければならない。<br>
-&nbsp;<br>
-Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;port(str):&nbsp;シリアルポート文字列<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Example:&nbsp;'COM3',&nbsp;'/dev/tty.usbserial'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;baudrate(Optional[int]):&nbsp;通信速度<br>
-&nbsp;<br>
-Raises:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;serial.SerialException:&nbsp;シリアルポートがオープンできなかった場合発生</tt></dd></dl>
-
-<dl><dt><a name="Connect-disconnect"><strong>disconnect</strong></a>(self)</dt><dd><tt>V-Sido&nbsp;CONNECTからの切断<br>
+<dl><dt><a name="Connect-close"><strong>close</strong></a>(self)</dt><dd><tt>V-Sido&nbsp;CONNECTからの切断<br>
 &nbsp;<br>
 V-Sido&nbsp;CONNECTと接続しているシリアルポートを明示的に閉じ切断する。<br>
 シリアルポートは通常はプログラムが終了した時に自動的に閉じる。</tt></dd></dl>
+
+<dl><dt><a name="Connect-connect"><strong>connect</strong></a>(self, port, baudrate=115200)</dt><dd><tt><a href="#Connect-open">open</a>()の別名</tt></dd></dl>
+
+<dl><dt><a name="Connect-disconnect"><strong>disconnect</strong></a>(self)</dt><dd><tt><a href="#Connect-close">close</a>()の別名</tt></dd></dl>
 
 <dl><dt><a name="Connect-get_acceleration"><strong>get_acceleration</strong></a>(self, timeout=1)</dt><dd><tt>V-Sido&nbsp;CONNECTに「加速度センサー値要求」コマンドの送信<br>
 &nbsp;<br>
@@ -256,6 +247,19 @@ Raises:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
 &nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
+<dl><dt><a name="Connect-open"><strong>open</strong></a>(self, port, baudrate=115200)</dt><dd><tt>V-Sido&nbsp;CONNECTにシリアルポート経由で接続<br>
+&nbsp;<br>
+シリアルポートを通じてV-Sido&nbsp;CONNECTに接続する。<br>
+色々なコマンドを投げる前にまず実行しなければならない。<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;port(str):&nbsp;シリアルポート文字列<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Example:&nbsp;'COM3',&nbsp;'/dev/tty.usbserial'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;baudrate(Optional[int]):&nbsp;通信速度<br>
+&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;serial.SerialException:&nbsp;シリアルポートがオープンできなかった場合発生</tt></dd></dl>
+
 <dl><dt><a name="Connect-parse_2byte_data"><strong>parse_2byte_data</strong></a>(self, data)</dt><dd><tt>V-Sido&nbsp;CONNECTからの2Byteデータを数値に戻す<br>
 &nbsp;<br>
 データ部に0xffが入ることを防ぐために2Byteのデータは0xffを含まない形に変形されているので、<br>
@@ -286,7 +290,7 @@ Raises:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
 &nbsp;&nbsp;&nbsp;&nbsp;ConnectionError:&nbsp;V-Sido&nbsp;CONNECT&nbsp;is&nbsp;not&nbsp;connected</tt></dd></dl>
 
-<dl><dt><a name="Connect-set_gpio_config"><strong>set_gpio_config</strong></a>(self, *gpio_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IO設定」コマンドの送信<br>
+<dl><dt><a name="Connect-set_gpio_value"><strong>set_gpio_value</strong></a>(self, *gpio_data_set)</dt><dd><tt>V-Sido&nbsp;CONNECTに「IO設定」コマンドの送信<br>
 &nbsp;<br>
 GPIOピン4～7番の出力を設定する。<br>
 事前にset_vid_set_io_mode()でピンを出力に切り替えなければならない。<br>
