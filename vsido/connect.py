@@ -1257,13 +1257,12 @@ class Connect(object):
         '''
         if not isinstance(value, int):
             raise ValueError('value must be int')
-        value_bytes = value.to_bytes(2, byteorder='little', signed=True)
-        # 上位バイトを左に1ビットシフト
-        value_high_tmp = (value_bytes[1] << 1) & 0x00ff
-        # 再び数値に戻し、全体を左に1ビットシフトする
-        value_tmp = (int.from_bytes([value_bytes[0], value_high_tmp], byteorder='little', signed=True) << 1)
-        value_tmp_bytes = value_tmp.to_bytes(2, byteorder='little', signed=True)
-        return [value_tmp_bytes[0], value_tmp_bytes[1]]
+        # 全体を左に1bitシフトし、上位下位バイトを分ける
+        value_bytes = (value << 1).to_bytes(2, byteorder='little', signed=True)
+        return_bytes_low = value_bytes[0]
+        # 上位バイトはさらに左に1bitシフトさせる
+        return_bytes_high = (value_bytes[1] << 1) & 0x00ff
+        return [return_bytes_low, return_bytes_high]
 
     def parse_2byte_data(self, data):
         '''
@@ -1289,14 +1288,12 @@ class Connect(object):
             raise ValueError('data must be list')
         if not len(data) == 2:
             raise ValueError('invalid response_data length')
-        # データを数値に戻し、全体を右に1ビットシフトする
-        value_tmp = int.from_bytes(data, byteorder='little', signed=True) >> 1
-        # 再度、上位Byteと下位Byteに分解する
-        value_tmp_bytes = value_tmp.to_bytes(2, byteorder='big', signed=True)
-        # 上位バイトだけ右に1ビットシフトする
-        value_high = (value_tmp_bytes[0] & 0x80) | (value_tmp_bytes[0] >> 1)
-        value_low = value_tmp_bytes[1]
-        return int.from_bytes([value_high, value_low], byteorder='big', signed=True)
+        # 上位バイトを右に1bitシフトして、データを数値に戻す
+        return_value_tmp = int.from_bytes([data[0], (data[1] >> 1)], byteorder='little', signed=True)
+        # 全体を右に1bitシフトする
+        return_value = return_value_tmp >> 1
+        # TODO(hine.gdw@gmail.com):符号付きデータの取扱い
+        return return_value
 
     def _adjust_ln_sum(self, command_data):
         '''データ中のLN(Length)とSUM(CheckSum)の調整
