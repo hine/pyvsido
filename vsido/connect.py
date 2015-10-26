@@ -1289,10 +1289,10 @@ class Connect(object):
         if not len(data) == 2:
             raise ValueError('invalid response_data length')
         # 上位バイトを右に1bitシフトして、データを数値に戻す
-        return_value_tmp = int.from_bytes([data[0], (data[1] >> 1)], byteorder='little', signed=True)
+        return_valur_tmp_high = (int.from_bytes([data[1],], byteorder='little', signed=True) >> 1).to_bytes(1, byteorder='little', signed=True)[0]
+        return_value_tmp = int.from_bytes([data[0], return_valur_tmp_high], byteorder='little', signed=True)
         # 全体を右に1bitシフトする
         return_value = return_value_tmp >> 1
-        # TODO(hine.gdw@gmail.com):符号付きデータの取扱い
         return return_value
 
     def _adjust_ln_sum(self, command_data):
