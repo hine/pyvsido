@@ -230,7 +230,7 @@ V-Sido&nbsp;CONNECTと接続状態にあるかどうかの確認<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;bool:&nbsp;接続している時はTrue、接続していない時はFalseを返す</tt></dd></dl>
 
-<dl><dt><a name="Connect-make_2byte_data"><strong>make_2byte_data</strong></a>(self, value)</dt><dd><tt>数値データから2Byteデータを作る<br>
+<dl><dt><a name="Connect-make_2bytes_data"><strong>make_2bytes_data</strong></a>(self, value)</dt><dd><tt>数値データから2Byteデータを作る<br>
 &nbsp;<br>
 データ部に0xffが入ることを防ぐために2Byteのデータを0xffを含まない形に変形する<br>
 &nbsp;(「V-Sido&nbsp;CONNECT&nbsp;RC&nbsp;Command&nbsp;Reference」参照)<br>
@@ -260,19 +260,20 @@ Args:<br>
 Raises:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;serial.SerialException:&nbsp;シリアルポートがオープンできなかった場合発生</tt></dd></dl>
 
-<dl><dt><a name="Connect-parse_2byte_data"><strong>parse_2byte_data</strong></a>(self, data)</dt><dd><tt>V-Sido&nbsp;CONNECTからの2Byteデータを数値に戻す<br>
+<dl><dt><a name="Connect-parse_2bytes_data"><strong>parse_2bytes_data</strong></a>(self, data, signed=False)</dt><dd><tt>V-Sido&nbsp;CONNECTからの2Byteデータを数値に戻す<br>
 &nbsp;<br>
 データ部に0xffが入ることを防ぐために2Byteのデータは0xffを含まない形に変形されているので、<br>
 それを元の数値に戻す<br>
 &nbsp;(「V-Sido&nbsp;CONNECT&nbsp;RC&nbsp;Command&nbsp;Reference」参照)<br>
 &nbsp;<br>
 Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;data&nbsp;加工したい2Byteのデータのリスト<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data(list):&nbsp;加工したい2Byteのデータのリスト<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0x0e,&nbsp;0xa6]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;signed(bool):&nbsp;データをsignedで扱うかunsignedで扱うか<br>
 &nbsp;<br>
 Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;加工して元に戻した数値<br>
+&nbsp;&nbsp;&nbsp;&nbsp;int:&nbsp;加工して元に戻した数値<br>
 &nbsp;<br>
 Raises:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;invalid&nbsp;argument<br>
