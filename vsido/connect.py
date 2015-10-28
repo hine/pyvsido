@@ -249,7 +249,7 @@ class Connect(object):
         data.append(round(cycle_time / 10)) # CYC(引数はmsec単位で来るが、データは10msec単位で送る)
         for angle_data in angle_data_set:
             data.append(angle_data['sid']) # SID
-            angle_data = self.make_2byte_data(round(angle_data['angle'] * 10))
+            angle_data = self.make_2bytes_data(round(angle_data['angle'] * 10))
             data.append(angle_data[0]) # ANGLE
             data.append(angle_data[1]) # ANGLE
         data.append(0x00) # SUM仮置き
@@ -364,10 +364,10 @@ class Connect(object):
         data.append(0x00) # LN仮置き
         for min_max_data in min_max_data_set:
             data.append(min_max_data['sid']) # SID
-            angle_data = self.make_2byte_data(round(min_max_data['min'] * 10))
+            angle_data = self.make_2bytes_data(round(min_max_data['min'] * 10))
             data.append(angle_data[0]) # MIN
             data.append(angle_data[1]) # MIN
-            angle_data = self.make_2byte_data(round(min_max_data['max'] * 10))
+            angle_data = self.make_2bytes_data(round(min_max_data['max'] * 10))
             data.append(angle_data[0]) # MAX
             data.append(angle_data[1]) # MAX
         data.append(0x00) # SUM仮置き
@@ -632,7 +632,7 @@ class Connect(object):
         if not 4 <= pwm_cycle <= 65536: # 16384 * 4まで
             raise ValueError('pwm_cycle must be 4 - 65536')
         pwm_cycle_data = round(pwm_cycle / 4)
-        # vdt = self.make_2byte_data # TODO(hine.gdw@gmail.com):本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
+        # vdt = self.make_2bytes_data # TODO(hine.gdw@gmail.com):本来はこれが正しいがver.2.2時点ではバグによりこうなっていない
         vdt = [pwm_cycle_data // 256, pwm_cycle_data % 256]
         self.set_vid_value({'vid':6, 'vdt':vdt[0]}, {'vid':7, 'vdt':vdt[1]})
         self._pwm_cycle = pwm_cycle
@@ -905,7 +905,7 @@ class Connect(object):
         data.append(0x00) # LN仮置き
         for pwm_data in pwm_data_set:
             data.append(pwm_data['iid']) # VID
-            pulse_data = self.make_2byte_data(round(pwm_data['pulse'] / 4))
+            pulse_data = self.make_2bytes_data(round(pwm_data['pulse'] / 4))
             data.append(pulse_data[0]) # ANGLE
             data.append(pulse_data[1]) # ANGLE
         data.append(0x00) # SUM仮置き
@@ -1237,7 +1237,7 @@ class Connect(object):
                     raise TimeoutError('V-Sido CONNECT response timeout')
         return self._response_waiting_buffer
 
-    def make_2byte_data(self, value):
+    def make_2bytes_data(self, value):
         '''数値データから2Byteデータを作る
 
         データ部に0xffが入ることを防ぐために2Byteのデータを0xffを含まない形に変形する
@@ -1257,6 +1257,8 @@ class Connect(object):
         '''
         if not isinstance(value, int):
             raise ValueError('value must be int')
+        if value > 0b0011111111111111: #変換できる数値は14bitまで
+            raise ValueError('too large value')
         # 全体を左に1bitシフトし、上位下位バイトを分ける
         value_bytes = (value << 1).to_bytes(2, byteorder='little', signed=True)
         return_bytes_low = value_bytes[0]
@@ -1264,7 +1266,7 @@ class Connect(object):
         return_bytes_high = (value_bytes[1] << 1) & 0x00ff
         return [return_bytes_low, return_bytes_high]
 
-    def parse_2byte_data(self, data):
+    def parse_2bytes_data(self, data, signed=False):
         '''
         V-Sido CONNECTからの2Byteデータを数値に戻す
 
@@ -1273,12 +1275,13 @@ class Connect(object):
          (「V-Sido CONNECT RC Command Reference」参照)
 
         Args:
-            data 加工したい2Byteのデータのリスト
+            data(list): 加工したい2Byteのデータのリスト
                 example:
                 [0x0e, 0xa6]
+            signed(bool): データをsignedで扱うかunsignedで扱うか
 
         Returns:
-            加工して元に戻した数値
+            int: 加工して元に戻した数値
 
         Raises:
             ValueError: invalid argument
@@ -1288,8 +1291,13 @@ class Connect(object):
             raise ValueError('data must be list')
         if not len(data) == 2:
             raise ValueError('invalid response_data length')
+        if not isinstance(signed, bool):
+            raise ValueError('signed must be bool')
         # 上位バイトを右に1bitシフトして、データを数値に戻す
-        return_valur_tmp_high = (int.from_bytes([data[1],], byteorder='little', signed=True) >> 1).to_bytes(1, byteorder='little', signed=True)[0]
+        if signed:
+            return_valur_tmp_high = (int.from_bytes([data[1],], byteorder='little', signed=True) >> 1).to_bytes(1, byteorder='little', signed=True)[0]
+        else:
+            return_valur_tmp_high = data[1] >> 1
         return_value_tmp = int.from_bytes([data[0], return_valur_tmp_high], byteorder='little', signed=True)
         # 全体を右に1bitシフトする
         return_value = return_value_tmp >> 1
