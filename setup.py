@@ -10,7 +10,7 @@ setup(
     download_url = 'https://github.com/hine/pyvsido/archive/master.zip',
     keywords = ['robot', 'robotics', 'V-Sido', 'serial'],
     install_requires=[
-        'pyserial==2.7',
+        'pyserial==2.6',
     ],
     classifiers = [
         'Programming Language :: Python',
