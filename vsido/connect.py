@@ -1295,10 +1295,10 @@ class Connect(object):
             raise ValueError('signed must be bool')
         # 上位バイトを右に1bitシフトして、データを数値に戻す
         if signed:
-            return_valur_tmp_high = (int.from_bytes([data[1],], byteorder='little', signed=True) >> 1).to_bytes(1, byteorder='little', signed=True)[0]
+            return_value_tmp_high = (int.from_bytes([data[1],], byteorder='little', signed=True) >> 1).to_bytes(1, byteorder='little', signed=True)[0]
         else:
-            return_valur_tmp_high = data[1] >> 1
-        return_value_tmp = int.from_bytes([data[0], return_valur_tmp_high], byteorder='little', signed=True)
+            return_value_tmp_high = data[1] >> 1
+        return_value_tmp = int.from_bytes([data[0], return_value_tmp_high], byteorder='little', signed=True)
         # 全体を右に1bitシフトする
         return_value = return_value_tmp >> 1
         return return_value
