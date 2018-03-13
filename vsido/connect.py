@@ -18,7 +18,7 @@ DEFAULT_BAUTRATE = 115200
 class Connect(object):
     '''V-Sido CONNECTのためのクラス
     '''
-    _COMMAND_ST = 0xff;
+    _COMMAND_ST = 0xff
     _COMMAND_OP_ANGLE = 0x6f # 'o'
     _COMMAND_OP_COMPLIANCE = 0x63 # 'c'
     _COMMAND_OP_MIN_MAX = 0x6d # 'm'
@@ -112,8 +112,8 @@ class Connect(object):
         if not self._connected:
             try:
                 self._serial = serial.serial_for_url(port, baudrate, timeout=1)
-            except serial.SerialException:
-                sys.stderr.write('could not open port %r: %s\n' % (port, e))
+            except serial.SerialException as error:
+                sys.stderr.write('could not open port %r: %s\n' % (port, error))
                 raise
             self._connected = True
             self._start_receiver()
@@ -253,7 +253,7 @@ class Connect(object):
             data.append(angle_data[0]) # ANGLE
             data.append(angle_data[1]) # ANGLE
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def set_servo_compliance(self, *compliance_data_set):
         '''V-Sido CONNECTに「コンプライアンス設定」コマンドの送信
@@ -309,7 +309,7 @@ class Connect(object):
             data.append(compliance_data['compliance_cw']) # CP1
             data.append(compliance_data['compliance_ccw']) # CP2
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def set_servo_min_max_angle(self, *min_max_data_set):
         '''V-Sido CONNECTに「最大・最小角設定」コマンドの送信
@@ -371,7 +371,7 @@ class Connect(object):
             data.append(angle_data[0]) # MAX
             data.append(angle_data[1]) # MAX
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def get_servo_info(self, *servo_data_set, timeout=1):
         '''
@@ -436,7 +436,7 @@ class Connect(object):
             data.append(servo_data['address']) # DAD
             data.append(servo_data['length']) # DLN
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def _parse_servo_info_response(self, *servo_data_set, response_data):
         '''「サーボ情報要求」のレスポンスデータのパース
@@ -447,7 +447,7 @@ class Connect(object):
             raise ValueError('Invalid response_data length')
         if not response_data[1] == Connect._COMMAND_OP_SERVO_INFO:
             raise ValueError('invalid response_data OP')
-        data_pos = 3;
+        data_pos = 3
         for i in range(0, len(servo_data_set)):
             if not response_data[data_pos] == servo_data_set[i]['sid']:
                 raise ValueError('invalid response_data')
@@ -489,7 +489,7 @@ class Connect(object):
         for sid in sid_set:
             data.append(sid) # SID
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def get_servo_feedback(self, address, length, timeout=1):
         '''V-Sido CONNECTに「フィードバック要求」コマンドを送信
@@ -533,7 +533,7 @@ class Connect(object):
         data.append(address) # DAD
         data.append(length) # DLN
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def _parse_servo_feedback_response(self, address, length, response_data):
         '''「サーボ情報要求」のレスポンスデータのパース
@@ -573,7 +573,7 @@ class Connect(object):
             ValueError: invalid argument
             ConnectionError: V-Sido CONNECT is not connected
         '''
-        mode_data = 0;
+        mode_data = 0
         for gpio_data in gpio_data_set:
             if not isinstance(gpio_data, dict):
                 raise ValueError('gpio_data_set must contain dict data')
@@ -685,7 +685,7 @@ class Connect(object):
             data.append(vid_data['vid']) # VID
             data.append(vid_data['vdt']) # VDT(※2Byteになるデータがある模様だが、それぞれでIDふられているので、LISTに入れるようにすること)
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def get_vid_version(self, timeout=1):
         '''バージョン情報のVID設定の取得
@@ -764,7 +764,7 @@ class Connect(object):
         for vid in vid_set:
             data.append(vid) # VID
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def _parse_vid_response(self, *vid_set, response_data):
         '''「VID要求」のレスポンスデータのパース
@@ -808,7 +808,7 @@ class Connect(object):
         data.append(Connect._COMMAND_OP_WRITE_FLASH) # OP
         data.append(0x00) # LN仮置き
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def set_gpio_value	(self, *gpio_data_set):
         '''V-Sido CONNECTに「IO設定」コマンドの送信
@@ -856,7 +856,7 @@ class Connect(object):
             data.append(gpio_data['iid']) # VID
             data.append(gpio_data['value']) # VAL
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def set_pwm_pulse_width(self, *pwm_data_set):
         '''V-Sido CONNECTに「PWM設定」コマンドの送信
@@ -909,7 +909,7 @@ class Connect(object):
             data.append(pulse_data[0]) # ANGLE
             data.append(pulse_data[1]) # ANGLE
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def check_connected_servo(self, timeout=1):
         '''V-Sido CONNECTに「接続確認要求」コマンドを送信
@@ -943,7 +943,7 @@ class Connect(object):
         data.append(Connect._COMMAND_OP_CHECK_SERVO) # OP
         data.append(0x00) # LN仮置き
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def _parse_check_connected_servo_response(self, response_data):
         '''「接続確認要求」のレスポンスデータのパース
@@ -1051,7 +1051,7 @@ class Connect(object):
             data.append(ik_data['kdt']['y'] + 100) # KDT_Y
             data.append(ik_data['kdt']['z'] + 100) # KDT_Z
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def get_ik(self, *kid_set, timeout=1):
         '''V-Sido CONNECTに「IK取得」コマンドの送信
@@ -1079,7 +1079,7 @@ class Connect(object):
         for kid in kid_set:
             if not isinstance(kid, int):
                 raise ValueError('kid must be int')
-            if not 0 <= ik_data['kid'] <= 15:
+            if not 0 <= kid <= 15:
                 raise ValueError('kid must be 0 - 15')
         if not (isinstance(timeout, int) or isinstance(timeout, float)):
             raise ValueError('timeout must be int or float')
@@ -1096,7 +1096,7 @@ class Connect(object):
         for kid in kid_set:
             data.append(kid) # KID
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def _parse_ik_response(self, response_data):
         '''「IK設定」のレスポンスデータのパース
@@ -1156,7 +1156,7 @@ class Connect(object):
         data.append(forward + 100)
         data.append(turn_cw + 100)
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def get_acceleration(self, timeout=1):
         '''V-Sido CONNECTに「加速度センサー値要求」コマンドの送信
@@ -1192,7 +1192,7 @@ class Connect(object):
         data.append(Connect._COMMAND_OP_ACCELERATION) # OP
         data.append(0x00) # LN仮置き
         data.append(0x00) # SUM仮置き
-        return self._adjust_ln_sum(data);
+        return self._adjust_ln_sum(data)
 
     def _parse_acceleration_response(self, response_data):
         '''「加速度センサ値要求」のレスポンスデータのパース
@@ -1308,8 +1308,8 @@ class Connect(object):
         '''
         ln_pos = 1 if command_data[0] in [0x0c, 0x0d, 0x53, 0x54] else 2
         if len(command_data) > 3:
-            command_data[ln_pos] = len(command_data);
-            sum = 0;
+            command_data[ln_pos] = len(command_data)
+            sum = 0
             for data in command_data:
                 sum ^= data
             command_data[len(command_data) - 1] = sum
