@@ -1137,9 +1137,9 @@ class Connect(object):
         if not response_data[1] == Connect._COMMAND_OP_IK:
             raise ValueError('invalid response_data OP')
         ikf = response_data[3]
-        ikf_use_pos = ikf & 0b00000001
-        ikf_use_rot = (ikf >> 1) & 0b00000001
-        ikf_use_tor = (ikf >> 2) & 0b00000001
+        ikf_use_pos = (ikf >> 3) & 0b00000001
+        ikf_use_rot = (ikf >> 4) & 0b00000001
+        ikf_use_tor = (ikf >> 5) & 0b00000001
         ik_num = (len(response_data) - 5) // (1 + (ikf_use_pos + ikf_use_rot + ikf_use_tor) * 3)
         ik_data_set = tuple()
         for i in range(0, ik_num):
