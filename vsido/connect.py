@@ -972,10 +972,16 @@ class Connect(object):
         Args:
             *ik_data_set(dict): IK設定情報を書いた辞書データ
                 kid(int): IK部位の番号
-                kdt(dict): IK用設定データ
-                    x(int): x座標に関するデータ
-                    y(int): y座標に関するデータ
-                    z(int): z座標に関するデータ
+                kdt(dict): IK用設定データ(位置、姿勢、トルクの必要なセットのみ)
+                    x(int): 位置のx座標に関するデータ
+                    y(int): 位置のy座標に関するデータ
+                    z(int): 位置のz座標に関するデータ
+                    rx(int): 姿勢のx座標に関するデータ
+                    ry(int): 姿勢のy座標に関するデータ
+                    rz(int): 姿勢のz座標に関するデータ
+                    tx(int): トルクのx座標に関するデータ
+                    ty(int): トルクのy座標に関するデータ
+                    tz(int): トルクのz座標に関するデータ
                 example:
                 {'kid':2, 'kdt':{'x':0, 'y':0, 'z':100}}, {'kid':3, 'kdt':{'x':0, 'y':0, 'z':100}}
             feedback(Optional[bool]): コマンド送信後、IK情報のリターンを求めるかのbool値(省略した場合フィードバックなし)
@@ -1041,15 +1047,38 @@ class Connect(object):
         data.append(Connect._COMMAND_ST) # ST
         data.append(Connect._COMMAND_OP_IK) # OP
         data.append(0x00) # LN仮置き
-        if not feedback:
-            data.append(0x01) # IKF
-        else:
-            data.append(0x09) # IKF
+        ikf = 0
+        for ik_data in ik_data_set:
+            if ('x' in ik_data['kdt']):
+                if not feedback:
+                    ikf = ikf | 0b00000001
+                else:
+                    ikf = ikf | 0b00001001
+            if ('rx' in ik_data['kdt']):
+                if not feedback:
+                    ikf = ikf | 0b00000010
+                else:
+                    ikf = ikf | 0b00010010
+            if ('tx' in ik_data['kdt']):
+                if not feedback:
+                    ikf = ikf | 0b00000100
+                else:
+                    ikf = ikf | 0b00100100
+        data.append(ikf) # IKF
         for ik_data in ik_data_set:
             data.append(ik_data['kid']) # KID
-            data.append(ik_data['kdt']['x'] + 100) # KDT_X
-            data.append(ik_data['kdt']['y'] + 100) # KDT_Y
-            data.append(ik_data['kdt']['z'] + 100) # KDT_Z
+            if ('x' in ik_data['kdt']):
+                data.append(ik_data['kdt']['x'] + 100) # KDT_X
+                data.append(ik_data['kdt']['y'] + 100) # KDT_Y
+                data.append(ik_data['kdt']['z'] + 100) # KDT_Z
+            if ('rx' in ik_data['kdt']):
+                data.append(ik_data['kdt']['rx'] + 100) # KDT_RX
+                data.append(ik_data['kdt']['ry'] + 100) # KDT_RY
+                data.append(ik_data['kdt']['rz'] + 100) # KDT_RZ
+            if ('tx' in ik_data['kdt']):
+                data.append(ik_data['kdt']['tx'] + 100) # KDT_TX
+                data.append(ik_data['kdt']['ty'] + 100) # KDT_TY
+                data.append(ik_data['kdt']['tz'] + 100) # KDT_TZ
         data.append(0x00) # SUM仮置き
         return self._adjust_ln_sum(data)
 
@@ -1107,15 +1136,32 @@ class Connect(object):
             raise ValueError('invalid response_data length')
         if not response_data[1] == Connect._COMMAND_OP_IK:
             raise ValueError('invalid response_data OP')
-        ik_num = (len(response_data) - 5) // 4
+        ikf = response_data[3]
+        ikf_use_pos = ikf & 0b00000001
+        ikf_use_rot = (ikf >> 1) & 0b00000001
+        ikf_use_tor = (ikf >> 2) & 0b00000001
+        ik_num = (len(response_data) - 5) // (1 + (ikf_use_pos + ikf_use_rot + ikf_use_tor) * 3)
         ik_data_set = tuple()
         for i in range(0, ik_num):
             ik_data = {}
+            kdt_count = 0
             ik_data['kid'] = response_data[i * 4 + 4]
             ik_data['kdt'] = {}
-            ik_data['kdt']['x'] = response_data[i * 4 + 5] - 100
-            ik_data['kdt']['y'] = response_data[i * 4 + 6] - 100
-            ik_data['kdt']['z'] = response_data[i * 4 + 7] - 100
+            if ikf_use_pos == 1:
+                ik_data['kdt']['x'] = response_data[i * 4 + 5] - 100
+                ik_data['kdt']['y'] = response_data[i * 4 + 6] - 100
+                ik_data['kdt']['z'] = response_data[i * 4 + 7] - 100
+                kdt_count += 3
+            if ikf_use_rot == 1:
+                ik_data['kdt']['rx'] = response_data[i * 4 + 5 + kdt_count] - 100
+                ik_data['kdt']['ry'] = response_data[i * 4 + 6 + kdt_count] - 100
+                ik_data['kdt']['rz'] = response_data[i * 4 + 7 + kdt_count] - 100
+                kdt_count += 3
+            if ikf_use_tor == 1:
+                ik_data['kdt']['tx'] = response_data[i * 4 + 5 + kdt_count] - 100
+                ik_data['kdt']['ty'] = response_data[i * 4 + 6 + kdt_count] - 100
+                ik_data['kdt']['tz'] = response_data[i * 4 + 7 + kdt_count] - 100
+                kdt_count += 3
             ik_data_set += (ik_data,)
         return ik_data_set
 
