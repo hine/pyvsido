@@ -1360,7 +1360,11 @@ class Connect(object):
                 sum ^= data
             command_data[len(command_data) - 1] = sum
             return command_data
-
+    
+    def get_firmware_version(self):
+        '''ファームウェアバージョンを返す
+        '''
+        return self._firmware_version
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':
