@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
     name = 'pyvsido',
     packages = ['vsido'],
-    version = '0.1.5',
+    version = '0.1.6',
     description = 'V-Sido CONNECT Livrary for Python3',
     author = 'Daisuke IMAI',
     author_email = 'hine.gdw@gmail.com',

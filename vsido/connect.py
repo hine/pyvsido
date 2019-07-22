@@ -183,8 +183,11 @@ class Connect(object):
                 if len(data) > 0:
                     receive_buffer.append(int.from_bytes(data, byteorder='big'))
                     if len(receive_buffer) == 1:
-                        receive_start = time.time()
-                        timeout = timeout_par_byte * 4
+                        if receive_buffer[0] == 255:
+                            receive_start = time.time()
+                            timeout = timeout_par_byte * 4
+                        else:
+                            receive_buffer = []
                     if len(receive_buffer) == 3:
                         timeout = timeout_par_byte * receive_buffer[2]
                     if len(receive_buffer) > 3:
