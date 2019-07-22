@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
     name = 'pyvsido',
     packages = ['vsido'],
-    version = '0.1.2',
+    version = '0.1.3',
     description = 'V-Sido CONNECT Livrary for Python3',
     author = 'Daisuke IMAI',
     author_email = 'hine.gdw@gmail.com',
@@ -10,7 +10,7 @@ setup(
     download_url = 'https://github.com/hine/pyvsido/archive/master.zip',
     keywords = ['robot', 'robotics', 'V-Sido', 'serial'],
     install_requires=[
-        'pyserial==2.6',
+        'pyserial',
     ],
     classifiers = [
         'Programming Language :: Python',
